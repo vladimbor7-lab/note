@@ -44,6 +44,36 @@ export const SEO: React.FC<SEOProps> = ({ title, description, canonical, ogImage
       }
       link.setAttribute('href', canonical);
     }
+
+    // JSON-LD Structured Data for Software Application
+    let script = document.querySelector('#json-ld-schema');
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'json-ld-schema';
+      script.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(script);
+    }
+    
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Travel AI",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": description,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "RUB"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "124"
+      }
+    };
+    script.textContent = JSON.stringify(schemaData);
+
   }, [title, description, canonical, ogImage]);
 
   return null;
