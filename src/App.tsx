@@ -165,8 +165,13 @@ export default function App() {
   });
   const [isSletatConnected, setIsSletatConnected] = useState(false);
   const [isSletatModalOpen, setIsSletatModalOpen] = useState(false);
+  const [isSletatConnecting, setIsSletatConnecting] = useState(false);
+  const [sletatConnectSuccess, setSletatConnectSuccess] = useState(false);
+  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
   const [sletatForm, setSletatForm] = useState({ login: '', password: '' });
   const chatEndRef = useRef<HTMLDivElement>(null);
+  
+  const agencyId = "ag_" + Math.random().toString(36).substring(2, 10);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -219,11 +224,23 @@ export default function App() {
     setIsSubmitted(true);
   };
 
-  const handleSletatConnect = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real app, we would encrypt and save to DB
-    setIsSletatConnected(true);
-    setIsSletatModalOpen(false);
+  const handleSletatConnect = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSletatConnecting(true);
+    
+    // Simulate API call and encryption
+    setTimeout(() => {
+      setIsSletatConnecting(false);
+      setSletatConnectSuccess(true);
+      
+      // Close modal after showing success
+      setTimeout(() => {
+        setIsSletatConnected(true);
+        setIsSletatModalOpen(false);
+        setSletatConnectSuccess(false);
+        setSletatForm({ login: '', password: '' });
+      }, 2500);
+    }, 1500);
   };
 
   return (
@@ -249,65 +266,142 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-lg glass rounded-[3rem] p-10 border border-white/10 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg glass rounded-[3rem] p-10 border border-white/10 shadow-2xl overflow-hidden min-h-[450px] flex flex-col justify-center"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 blur-3xl -z-10" />
               
               <button 
                 onClick={() => setIsSletatModalOpen(false)}
-                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-10"
               >
                 <X size={24} />
               </button>
 
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Hotel className="text-violet-400" size={32} />
+              <AnimatePresence mode="wait">
+                {isSletatConnecting ? (
+                  <motion.div 
+                    key="loading"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <div className="w-16 h-16 border-4 border-violet-500/30 border-t-violet-500 rounded-full animate-spin mb-6" />
+                    <h3 className="text-2xl font-black text-white mb-2">Проверка доступов...</h3>
+                    <p className="text-white/50">Связываемся с серверами Слетать.ру</p>
+                  </motion.div>
+                ) : sletatConnectSuccess ? (
+                  <motion.div 
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6">
+                      <CheckCircle2 size={40} className="text-emerald-400" />
+                    </div>
+                    <h3 className="text-3xl font-black text-white mb-4">Демо-доступ активирован!</h3>
+                    <p className="text-white/50 mb-6">Это демонстрационный режим. В реальной версии платформы здесь происходит проверка логина и пароля через официальный API Слетать.ру. Сейчас мы просто включили для вас отображение ссылок, чтобы вы могли оценить функционал.</p>
+                  </motion.div>
+                ) : (
+                  <motion.div 
+                    key="form"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                  >
+                    <div className="text-center mb-8">
+                      <div className="w-16 h-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <Hotel className="text-violet-400" size={32} />
+                      </div>
+                      <h3 className="text-3xl font-black text-white mb-4 tracking-tight uppercase">Подключить Слетать.ру</h3>
+                      <p className="text-white/50 text-sm leading-relaxed">
+                        Чтобы открыть тур и получить рабочие ссылки, подключите свой аккаунт Слетать.ру. Это займёт 30 секунд.
+                      </p>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+                        <h4 className="text-white font-bold mb-2 flex items-center gap-2">
+                          <Zap size={18} className="text-amber-400" />
+                          Как это работает в реальности?
+                        </h4>
+                        <p className="text-sm text-white/60 leading-relaxed mb-4">
+                          В рабочей версии платформы здесь находятся поля для ввода логина и пароля от Слетать.ру. Агентство вводит свои данные один раз, мы надежно их шифруем (AES-256) и используем для генерации прямых ссылок на туры в чате.
+                        </p>
+                        <div className="flex items-center gap-2 text-xs font-black text-white/30 uppercase tracking-widest">
+                          <span className="w-full h-px bg-white/10"></span>
+                          Демо-режим
+                          <span className="w-full h-px bg-white/10"></span>
+                        </div>
+                      </div>
+
+                      <button 
+                        onClick={() => handleSletatConnect()}
+                        className="w-full bg-violet-500 hover:bg-violet-600 text-white py-5 rounded-2xl font-black text-lg transition-all shadow-xl shadow-violet-500/20 flex items-center justify-center gap-3"
+                      >
+                        Понятно, включить демо-режим 🚀
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isWidgetModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsWidgetModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl glass rounded-[3rem] p-10 border border-white/10 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-violet-500/10 blur-3xl -z-10" />
+              
+              <button 
+                onClick={() => setIsWidgetModalOpen(false)}
+                className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-10"
+              >
+                <X size={24} />
+              </button>
+
+              <div className="mb-8">
+                <div className="w-16 h-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-6">
+                  <Search className="text-violet-400" size={32} />
                 </div>
-                <h3 className="text-3xl font-black text-white mb-4 tracking-tight uppercase">Подключить Слетать.ру</h3>
+                <h3 className="text-3xl font-black text-white mb-4 tracking-tight uppercase">Код вашего виджета</h3>
                 <p className="text-white/50 text-sm leading-relaxed">
-                  Чтобы открыть тур и получить рабочие ссылки, подключите свой аккаунт Слетать.ру. Это займёт 30 секунд.
+                  Скопируйте этот код и вставьте его перед закрывающим тегом <code className="bg-white/10 px-2 py-1 rounded text-violet-300">&lt;/head&gt;</code> на вашем сайте. Виджет автоматически привяжется к вашему агентству.
                 </p>
               </div>
 
-              <form onSubmit={handleSletatConnect} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-4">Логин</label>
-                  <input 
-                    type="text" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-violet-500 outline-none transition-all"
-                    placeholder="Ваш логин в Слетать.ру"
-                    value={sletatForm.login}
-                    onChange={e => setSletatForm({...sletatForm, login: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-white/30 uppercase tracking-widest ml-4">Пароль</label>
-                  <input 
-                    type="password" 
-                    required
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:ring-2 focus:ring-violet-500 outline-none transition-all"
-                    placeholder="••••••••"
-                    value={sletatForm.password}
-                    onChange={e => setSletatForm({...sletatForm, password: e.target.value})}
-                  />
-                </div>
-                
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-start gap-3 mb-6">
-                  <Zap size={16} className="text-violet-400 shrink-0 mt-1" />
-                  <p className="text-[11px] text-white/40 leading-relaxed">
-                    Мы используем ваши данные только для получения актуальных цен через официальный API. Данные хранятся в зашифрованном виде (AES-256).
-                  </p>
-                </div>
-
+              <div className="bg-[#0d0d0d] rounded-2xl p-6 border border-white/10 relative group">
+                <div className="absolute top-4 right-4 text-[10px] font-black uppercase tracking-widest text-white/30">HTML</div>
+                <pre className="text-sm font-mono text-white/80 overflow-x-auto whitespace-pre-wrap">
+                  <span className="text-fuchsia-400">&lt;script</span> <span className="text-violet-300">src</span>=<span className="text-emerald-300">"https://travelai.ru/widget.js"</span> <span className="text-violet-300">data-agency-id</span>=<span className="text-emerald-300">"{agencyId}"</span><span className="text-fuchsia-400">&gt;&lt;/script&gt;</span>
+                </pre>
+              </div>
+              
+              <div className="mt-6 flex justify-end">
                 <button 
-                  type="submit"
-                  className="w-full bg-violet-500 hover:bg-violet-600 text-white py-5 rounded-2xl font-black text-lg transition-all shadow-xl shadow-violet-500/20 flex items-center justify-center gap-3"
+                  onClick={() => setIsWidgetModalOpen(false)}
+                  className="bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-black text-sm transition-all"
                 >
-                  Подключить Слетать.ру 🔐
+                  Закрыть
                 </button>
-              </form>
+              </div>
             </motion.div>
           </div>
         )}
@@ -681,6 +775,12 @@ export default function App() {
                       <div className="markdown-body prose prose-invert prose-sm max-w-none">
                         <ReactMarkdown
                           components={{
+                            p: ({ children }) => {
+                              const hasDiv = React.Children.toArray(children).some(
+                                (child) => React.isValidElement(child) && (child.type === 'div' || (typeof child.type === 'string' && child.type === 'div'))
+                              );
+                              return hasDiv ? <div className="mb-4 last:mb-0">{children}</div> : <p className="mb-4 last:mb-0">{children}</p>;
+                            },
                             img: ({ src, alt }) => (
                               <div className="my-4 rounded-xl overflow-hidden border border-white/10 bg-black/20 group relative">
                                 <img 
@@ -863,7 +963,9 @@ export default function App() {
                 title: 'Виджет на сайт',
                 desc: 'Просто добавьте одну строку JS-кода в <head> вашего сайта. Полная кастомизация под ваш бренд.',
                 icon: <Search className="text-violet-400" />,
-                status: 'Активно'
+                status: 'Активно',
+                action: () => setIsWidgetModalOpen(true),
+                actionText: 'Сгенерировать код'
               },
               {
                 title: 'CRM (передача заявок)',
@@ -899,7 +1001,7 @@ export default function App() {
                     onClick={step.action}
                     className="w-full bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl text-xs font-black transition-all border border-white/10"
                   >
-                    Подключить
+                    {step.actionText || 'Подключить'}
                   </button>
                 )}
               </div>
