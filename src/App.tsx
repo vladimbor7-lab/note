@@ -31,8 +31,19 @@ import { SEO } from './components/SEO';
 import { GoogleGenAI } from "@google/genai";
 
 // --- Constants ---
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 const MODEL_NAME = "gemini-3-flash-preview";
+
+let genAIClient: GoogleGenAI | null = null;
+const getGenAI = () => {
+  if (!genAIClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is missing. Please add it to your environment variables.");
+    }
+    genAIClient = new GoogleGenAI({ apiKey });
+  }
+  return genAIClient;
+};
 
 // --- Components ---
 
@@ -194,7 +205,8 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      const chat = genAI.chats.create({
+      const ai = getGenAI();
+      const chat = ai.chats.create({
         model: MODEL_NAME,
         config: {
           systemInstruction: "Ты — Роман, профессиональный ИИ-ассистент для турагентств. Твоя цель — помогать клиентам подбирать идеальные туры. Отвечай вежливо, профессионально и на русском языке. Всегда используй Markdown для форматирования. Если предлагаешь отели, обязательно добавляй фото отеля в формате ![Название](ссылка_на_фото) и кнопку просмотра тура в формате [Learn more](https://example.com). Используй качественные фото отелей из интернета (например, с picsum.photos или других открытых источников)."
@@ -211,9 +223,12 @@ export default function App() {
       if (reply) {
         setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat error:', error);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Извините, произошла ошибка. Попробуйте позже.' }]);
+      const errorMessage = error.message?.includes('GEMINI_API_KEY') 
+        ? 'Ошибка: Не настроен ключ API. Пожалуйста, добавьте GEMINI_API_KEY в настройки Vercel.'
+        : 'Извините, произошла ошибка. Попробуйте позже.';
+      setMessages(prev => [...prev, { role: 'assistant', content: errorMessage }]);
     } finally {
       setIsTyping(false);
     }
