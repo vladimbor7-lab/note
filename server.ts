@@ -1,134 +1,86 @@
-import express from "express";
-import { createServer as createViteServer } from "vite";
-import path from "path";
-import { fileURLToPath } from "url";
-import TelegramBot from "node-telegram-bot-api";
-import { GoogleGenAI } from "@google/genai";
-import dotenv from "dotenv";
+import express from 'express';
+import cors from 'cors';
+import { createServer as createViteServer } from 'vite';
+import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenAI } from '@google/genai';
 
-dotenv.config();
+const app = express();
+const PORT = 3000;
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+app.use(cors());
+app.use(express.json());
 
-// In-memory leads store
-let leads: any[] = [
-  { 
-    id: Date.now(), 
-    name: 'Алексей (Тест)', 
-    destination: 'Турция', 
-    budget: '250 000 ₽', 
-    people: '2 взрослых, 1 ребенок', 
-    dates: 'Середина августа', 
-    status: 'Новая', 
-    raw: 'Хотим в Турцию в августе с ребенком, бюджет 250к' 
-  }
-];
+// Initialize AI Clients
+const anthropic = new Anthropic({
+  apiKey: process.env.CLAUDE_API_KEY,
+});
 
-const BOT_TOKEN = process.env.BOT_TOKEN || "8340829703:AAGI47Ma3B5DJjV1N0CiB2ELaavBp8g9OZU";
-const AGENT_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "1372666245";
+const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-// Initialize Bot
-let bot: TelegramBot | null = null;
-try {
-  bot = new TelegramBot(BOT_TOKEN, { polling: true });
-  console.log("Telegram bot started polling");
+// API Routes
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
-  bot.on('message', async (msg) => {
-    const chatId = msg.chat.id;
-    const text = msg.text || '';
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, model = 'claude' } = req.body;
 
-    if (text === '/start') {
-      bot?.sendMessage(chatId, 'Здравствуйте! Я ИИ-ассистент турагентства. Напишите, куда бы вы хотели полететь, состав вашей семьи и примерный бюджет, и я передам заявку нашему лучшему менеджеру!');
-      return;
-    }
+    if (model === 'claude') {
+      if (!process.env.CLAUDE_API_KEY) {
+        return res.status(500).json({ error: 'Claude API key not configured' });
+      }
 
-    bot?.sendChatAction(chatId, 'typing');
+      const response = await anthropic.messages.create({
+        model: "claude-3-5-sonnet-20240620",
+        max_tokens: 1024,
+        messages: [{ role: "user", content: message }],
+      });
 
-    try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
-      const prompt = `
-        Extract travel parameters from this message: "${text}". 
-        Return ONLY a valid JSON object with keys: "destination", "budget", "people", "dates". 
-        If a parameter is missing or unknown, set its value to "Не указано".
-        Do not include markdown formatting like \`\`\`json. Just the raw JSON object.
-      `;
+      // @ts-ignore - content[0] is TextBlock
+      res.json({ reply: response.content[0].text });
+    } else {
+      // Fallback to Gemini
+      if (!process.env.GEMINI_API_KEY) {
+        return res.status(500).json({ error: 'Gemini API key not configured' });
+      }
       
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
+      const response = await genAI.models.generateContent({
+        model: "gemini-2.0-flash-exp",
+        contents: message
       });
       
-      let jsonText = response.text || "{}";
-      jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '').trim();
-      
-      const data = JSON.parse(jsonText);
-
-      const newLead = {
-        id: Date.now(),
-        name: msg.from?.first_name || msg.from?.username || 'Клиент TG',
-        destination: data.destination || 'Не указано',
-        budget: data.budget || 'Не указано',
-        people: data.people || 'Не указано',
-        dates: data.dates || 'Не указано',
-        status: 'Новая',
-        raw: text
-      };
-      
-      leads.unshift(newLead);
-
-      const notification = `🚨 *Новая квалифицированная заявка!*\n\n👤 *Клиент:* ${newLead.name}\n📍 *Направление:* ${newLead.destination}\n💰 *Бюджет:* ${newLead.budget}\n👨‍👩‍👧 *Состав:* ${newLead.people}\n📅 *Даты:* ${newLead.dates}\n\n💬 *Оригинал:* _${newLead.raw}_`;
-      
-      bot?.sendMessage(AGENT_CHAT_ID, notification, { parse_mode: 'Markdown' });
-      bot?.sendMessage(chatId, 'Спасибо! Я собрал информацию и передал её менеджеру. Он скоро свяжется с вами с готовой подборкой туров.');
-    } catch (e) {
-      console.error("Error processing message:", e);
-      bot?.sendMessage(chatId, 'Спасибо за обращение! Передал вашу заявку менеджеру.');
+      res.json({ reply: response.text });
     }
-  });
+  } catch (error: any) {
+    console.error('AI Error:', error);
+    res.status(500).json({ error: error.message || 'Internal Server Error' });
+  }
+});
 
-  bot.on('polling_error', (error) => {
-    console.error("Polling error:", error.message);
-  });
-
-  process.once('SIGINT', () => bot?.stopPolling());
-  process.once('SIGTERM', () => bot?.stopPolling());
-} catch (e) {
-  console.error("Failed to start Telegram bot:", e);
-}
-
+// Vite middleware for development
 async function startServer() {
-  const app = express();
-  const PORT = 3000;
-
-  app.use(express.json());
-
-  // API routes
-  app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
-  });
-
-  app.get("/api/leads", (req, res) => {
-    res.json(leads);
-  });
-
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: "spa",
+      appType: 'spa',
     });
     app.use(vite.middlewares);
   } else {
-    // Production static serving
-    app.use(express.static(path.resolve(__dirname, "dist")));
-    app.get("*", (req, res) => {
-      res.sendFile(path.resolve(__dirname, "dist", "index.html"));
+    // In production, serve static files from dist
+    const path = await import('path');
+    const { fileURLToPath } = await import('url');
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    
+    app.use(express.static(path.resolve(__dirname, 'dist')));
+    
+    app.get('*', (req, res) => {
+      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

@@ -29,9 +29,9 @@ export const Leads = () => {
         <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
           <Send size={24} />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2">Проверка интеграции с Telegram</h3>
+        <h3 className="text-xl font-bold text-slate-900 mb-2">Проверка уведомлений</h3>
         <p className="text-slate-500 mb-6 max-w-md mx-auto">
-          Нажмите кнопку ниже, чтобы сымитировать поступление новой заявки. Бот отправит сообщение в ваш Telegram (ID: 1372666245).
+          Нажмите кнопку ниже, чтобы проверить работу системы уведомлений (отправка тестового лида).
         </p>
         <button 
           onClick={handleSimulateLead}
@@ -39,7 +39,7 @@ export const Leads = () => {
           className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 mx-auto transition-all disabled:opacity-50 shadow-sm"
         >
           {sent ? <CheckCircle2 size={18} /> : <Send size={18} />}
-          {sent ? 'Отправлено в Telegram!' : 'Отправить тестовый лид'}
+          {sent ? 'Уведомление отправлено!' : 'Отправить тестовый лид'}
         </button>
       </div>
 
