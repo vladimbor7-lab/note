@@ -14,7 +14,7 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply font-sans bg-brand-bg text-white antialiased;
+    @apply font-sans antialiased;
   }
 }
 
@@ -53,6 +53,6 @@
 }
 
 .markdown-body strong {
-  @apply font-black text-white;
+  @apply font-black text-slate-900;
 }
 

@@ -1,298 +1,480 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Link } from 'react-router-dom';
-import { SEO } from '../components/SEO';
-import { 
-  Sparkles, Zap, MessageSquare, CheckCircle2, 
-  ChevronDown, ArrowRight, Globe, 
-  Menu, X, PlayCircle, Send
-} from 'lucide-react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import '../landing.css';
+import { initLanding } from '../landing-script';
 
 export const Landing = () => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    // Initialize the vanilla JS logic
+    initLanding();
 
-  const faqs = [
-    {
-      q: "Заменит ли бот живого менеджера?",
-      a: "Нет, бот не заменяет менеджера, а забирает на себя 80% рутины. Он квалифицирует лида (узнает даты, бюджет, состав) и передает менеджеру готовую заявку. Менеджеру остается только закрыть сделку."
-    },
-    {
-      q: "Как работает интеграция со Слетать.ру?",
-      a: "Бот имеет прямой доступ к базе туров Слетать.ру. Когда клиент просит тур в Турцию на 10 дней, ИИ мгновенно парсит актуальные цены и выдает 3-5 лучших вариантов с фото и ссылками."
-    },
-    {
-      q: "Можно ли подключить бота к WhatsApp и Telegram?",
-      a: "Да! Бот работает в WhatsApp, Telegram, VK и виджетом на сайте. Все диалоги могут дублироваться в вашу CRM (U-ON, Битрикс24, amoCRM)."
-    },
-    {
-      q: "Смогу ли я сам настроить бота?",
-      a: "Абсолютно. У нас есть удобная Рабочая зона (Dashboard), где вы можете в один клик менять настройки, тарифы и смотреть статистику заявок."
-    }
-  ];
+    // Hijack the login link to use React Router
+    const loginLinks = document.querySelectorAll('a[href="roman-login.html"]');
+    const handleLoginClick = (e: Event) => {
+      e.preventDefault();
+      navigate('/dashboard');
+    };
+    
+    loginLinks.forEach(link => {
+      link.addEventListener('click', handleLoginClick);
+    });
+
+    return () => {
+      loginLinks.forEach(link => {
+        link.removeEventListener('click', handleLoginClick);
+      });
+    };
+  }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white font-sans selection:bg-violet-500/30">
-      <SEO 
-        title="Travel AI | Нейросеть и чат-бот для турагентств с интеграцией Слетать.ру"
-        description="Увеличьте продажи туров на 40% с помощью ИИ-ассистента. Автоматический подбор туров через Слетать.ру, ответы клиентам 24/7, интеграция с U-ON и Битрикс24."
-      />
-
-      {/* Navbar */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled ? 'bg-black/80 backdrop-blur-xl border-b border-white/10 py-4' : 'bg-transparent py-6'
-      }`}>
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <a href="#" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg flex items-center justify-center text-white font-black text-lg shadow-lg shadow-violet-500/20">
-              T
-            </div>
-            <span className="text-xl font-black tracking-tighter text-white">
-              TRAVEL<span className="text-violet-500">AI</span>
-            </span>
-          </a>
-
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm font-bold text-white/60 hover:text-white transition-colors">Преимущества</a>
-            <a href="#demo" className="text-sm font-bold text-white/60 hover:text-white transition-colors">Демо</a>
-            <a href="#faq" className="text-sm font-bold text-white/60 hover:text-white transition-colors">FAQ</a>
-            <a href="#pricing" className="text-sm font-bold text-white/60 hover:text-white transition-colors">Тарифы</a>
-            <Link to="/dashboard" className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-black hover:bg-violet-500 hover:text-white transition-all duration-300 shadow-xl shadow-white/5">
-              Войти в кабинет
-            </Link>
-          </div>
-
-          <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="relative pt-40 pb-20 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-violet-500/20 rounded-full blur-[120px] pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full text-white/80 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-md"
-          >
-            <Sparkles size={14} className="text-violet-400" />
-            <span>B2B Copilot для туризма</span>
-          </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1] mb-8"
-          >
-            Чат-бот для <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-fuchsia-400">
-              турагентств
-            </span>
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg md:text-xl text-white/60 max-w-3xl mx-auto mb-12 leading-relaxed"
-          >
-            ИИ-ассистент с интеграцией Слетать.ру. Подбирает туры, отвечает клиентам 24/7, прогревает лиды и передает готовые заявки менеджерам в WhatsApp и CRM.
-          </motion.p>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
-          >
-            <Link to="/dashboard" className="w-full sm:w-auto bg-violet-500 hover:bg-violet-600 text-white px-8 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2">
-              Попробовать бесплатно <ArrowRight size={20} />
-            </Link>
-            <a href="#demo" className="w-full sm:w-auto bg-white/5 hover:bg-white/10 border border-white/10 text-white px-8 py-4 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-2">
-              <PlayCircle size={20} /> Смотреть демо
-            </a>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section id="features" className="py-24 bg-black">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black mb-4">Почему мы лучше CRM?</h2>
-            <p className="text-white/50 text-lg">Мы не заставляем вас заполнять таблицы. Мы автоматизируем общение.</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: MessageSquare, title: "ИИ-Копирайтер", desc: "Превращает сухой текст от туроператора в красивый продающий пост для WhatsApp за 1 секунду." },
-              { icon: Zap, title: "Квалификация лидов", desc: "Бот сам узнает у клиента даты, бюджет и состав туристов, пока вы спите." },
-              { icon: Globe, title: "Слетать.ру под капотом", desc: "Мгновенный поиск актуальных цен и туров по всем туроператорам прямо в чате." }
-            ].map((f, i) => (
-              <div key={i} className="bg-[#111] border border-white/10 p-8 rounded-3xl hover:border-violet-500/50 transition-colors">
-                <div className="w-14 h-14 bg-violet-500/20 text-violet-400 rounded-2xl flex items-center justify-center mb-6">
-                  <f.icon size={28} />
-                </div>
-                <h3 className="text-xl font-bold mb-3">{f.title}</h3>
-                <p className="text-white/50 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Demo Section */}
-      <section id="demo" className="py-24 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-black mb-6">Как это выглядит для клиента</h2>
-              <p className="text-white/50 text-lg mb-8 leading-relaxed">
-                Ваш клиент пишет в WhatsApp или Telegram. Бот моментально отвечает, задает правильные вопросы и предлагает варианты. Никакого ожидания ответа менеджера.
-              </p>
-              <ul className="space-y-4 mb-8">
-                {['Отвечает за 2 секунды', 'Понимает голосовые сообщения', 'Присылает фото отелей', 'Передает контакты вам'].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-white/80 font-medium">
-                    <CheckCircle2 size={20} className="text-violet-500" /> {item}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/dashboard" className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-violet-500 hover:text-white transition-colors">
-                Настроить своего бота <ArrowRight size={18} />
-              </Link>
-            </div>
-            
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-violet-500/20 to-fuchsia-500/20 rounded-[40px] blur-3xl" />
-              <div className="relative bg-[#1a1a1a] border border-white/10 rounded-[40px] p-6 shadow-2xl">
-                <div className="flex items-center gap-4 border-b border-white/10 pb-4 mb-4">
-                  <div className="w-12 h-12 bg-violet-500 rounded-full flex items-center justify-center text-white font-bold">AI</div>
-                  <div>
-                    <div className="font-bold text-lg">Travel AI Бот</div>
-                    <div className="text-xs text-green-400">В сети</div>
-                  </div>
-                </div>
-                
-                <div className="space-y-4 mb-4">
-                  <div className="flex justify-end">
-                    <div className="bg-violet-600 text-white px-4 py-3 rounded-2xl rounded-tr-sm max-w-[80%] text-sm">
-                      Хочу в Турцию в августе, 2 взрослых, бюджет 200к. Что посоветуете?
-                    </div>
-                  </div>
-                  <div className="flex justify-start">
-                    <div className="bg-[#2a2a2a] text-white px-4 py-3 rounded-2xl rounded-tl-sm max-w-[85%] text-sm">
-                      Отличный выбор! Август — прекрасное время для Турции. 🌊<br/><br/>
-                      Я подобрал для вас 3 отличных варианта в ваш бюджет:<br/><br/>
-                      <b>1. Rixos Premium Belek 5*</b><br/>
-                      Ультра всё включено. Шикарный пляж.<br/>
-                      💰 195 000 ₽<br/><br/>
-                      Оформить заявку на этот тур?
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="relative">
-                  <input type="text" placeholder="Написать сообщение..." className="w-full bg-[#2a2a2a] border border-white/10 rounded-full px-6 py-4 text-sm outline-none" disabled />
-                  <button className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-violet-500 rounded-full flex items-center justify-center text-white" disabled>
-                    <Send size={18} className="-ml-1" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-24 bg-black">
-        <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl md:text-5xl font-black text-center mb-12">Частые вопросы</h2>
-          <div className="space-y-4">
-            {faqs.map((faq, i) => (
-              <div key={i} className="bg-[#111] border border-white/10 rounded-2xl overflow-hidden">
-                <button 
-                  className="w-full px-6 py-5 text-left font-bold flex items-center justify-between"
-                  onClick={() => setActiveFaq(activeFaq === i ? null : i)}
-                >
-                  {faq.q}
-                  <ChevronDown size={20} className={`text-white/50 transition-transform ${activeFaq === i ? 'rotate-180' : ''}`} />
-                </button>
-                <AnimatePresence>
-                  {activeFaq === i && (
-                    <motion.div 
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="px-6 pb-5 text-white/60 leading-relaxed"
-                    >
-                      {faq.a}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-black mb-4">Простые тарифы</h2>
-            <p className="text-white/50 text-lg">Окупается с первой проданной путевки</p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { name: "Ассистент", price: "2 900 ₽", desc: "Квалификация лидов в Telegram/VK", features: ["Telegram/VK бот", "Сбор контактов", "Уведомления менеджеру"] },
-              { name: "ПРО", price: "6 900 ₽", desc: "Интеграция с WhatsApp и саммари", features: ["Всё из Ассистента", "WhatsApp интеграция", "Распознавание аудио", "ИИ-Копирайтер"], popular: true },
-              { name: "Премиум", price: "15 000 ₽", desc: "Полная автоматизация агентства", features: ["Всё из ПРО", "Интеграция с CRM", "Подбор туров Слетать.ру", "Персональный менеджер"] }
-            ].map((plan, i) => (
-              <div key={i} className={`bg-[#111] border ${plan.popular ? 'border-violet-500 scale-105 z-10' : 'border-white/10'} rounded-3xl p-8 relative`}>
-                {plan.popular && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-violet-500 text-white text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full">Хит продаж</div>}
-                <h3 className="text-2xl font-black mb-2">{plan.name}</h3>
-                <div className="text-4xl font-black mb-4">{plan.price}<span className="text-lg text-white/40 font-normal">/мес</span></div>
-                <p className="text-white/50 mb-8 h-12">{plan.desc}</p>
-                <ul className="space-y-4 mb-8">
-                  {plan.features.map((f, j) => (
-                    <li key={j} className="flex items-center gap-3 text-white/80">
-                      <CheckCircle2 size={18} className="text-violet-400" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link to="/dashboard" className={`block text-center w-full py-4 rounded-xl font-bold transition-all ${plan.popular ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'bg-white/5 hover:bg-white/10 text-white'}`}>
-                  Выбрать тариф
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/10 py-12 bg-black">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-violet-500 rounded flex items-center justify-center text-white font-black text-xs">T</div>
-            <span className="font-black tracking-tighter">TRAVEL<span className="text-violet-500">AI</span></span>
-          </div>
-          <div className="text-white/40 text-sm">
-            © 2026 Travel AI. Все права защищены.
-          </div>
-        </div>
-      </footer>
-    </div>
+    <div className="landing-body" dangerouslySetInnerHTML={{ __html: landingHtml }} />
   );
 };
+
+const landingHtml = `
+<!-- NAV -->
+<nav>
+  <div class="nav-in">
+    <a class="logo" href="#">
+      <div class="lm">T</div>
+      <div class="lt">Travel<em>AI</em></div>
+    </a>
+    <div class="nav-links">
+      <span class="nl" onclick="go('demo')">Демо</span>
+      <span class="nl" onclick="go('flow')">Как работает</span>
+      <span class="nl" onclick="go('pilot')">Пилот</span>
+      <span class="nl" onclick="go('pricing')">Тарифы</span>
+    </div>
+    <a class="nav-cta" href="roman-login.html">Войти →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-in">
+    <div>
+      <div class="hero-tag"><span class="pulse"></span>Запускаем пилот с первыми агентствами</div>
+      <h1>Вы теряете до <em>40% заявок</em> с вашего сайта</h1>
+      <p class="hero-desc">Travel AI отвечает клиенту за 10 секунд, подбирает туры и передаёт горячую заявку менеджеру. 24/7.</p>
+      <div class="hero-btns">
+        <button class="btn btn-p" onclick="go('demo')">Попробовать демо</button>
+        <button class="btn btn-o" onclick="go('contact')">Получить пилот</button>
+      </div>
+      <div class="hero-note">Без регистрации · Настроим сами · <strong>Если нет эффекта — не платите</strong></div>
+    </div>
+    <div class="hero-cards">
+      <div class="hc"><div class="hc-n">+<em>32</em>%</div><div class="hc-l">заявок с сайта</div></div>
+      <div class="hc"><div class="hc-n"><em>10</em> с</div><div class="hc-l">время ответа</div></div>
+      <div class="hc"><div class="hc-n">–<em>3</em> ч</div><div class="hc-l">у менеджера/день</div></div>
+      <div class="hc"><div class="hc-n">+<em>120</em>к</div><div class="hc-l">₽/мес ROI</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DARK BAR -->
+<div class="dark-bar">
+  <div class="db-in">
+    <div class="dbi"><div class="dbi-n">+<em>32</em>%</div><div class="dbi-l">заявок с сайта</div></div>
+    <div class="dbi"><div class="dbi-n">2.1<em>×</em></div><div class="dbi-l">быстрее обработка</div></div>
+    <div class="dbi"><div class="dbi-n"><em>10</em> с</div><div class="dbi-l">ответ клиенту</div></div>
+    <div class="dbi"><div class="dbi-n"><em>24</em>/7</div><div class="dbi-l">работает всегда</div></div>
+  </div>
+</div>
+
+<!-- BEFORE/AFTER -->
+<section class="sec" style="background:var(--g);">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">До и после</div>
+    <h2 class="reveal">Что меняется <em>с первого дня</em></h2>
+    <div class="ba-grid">
+      <div class="ba-card before reveal">
+        <div class="ba-lbl">Без Travel AI</div>
+        <div class="ba-row"><span class="bx">✕</span>Менеджер отвечает 20–30 минут</div>
+        <div class="ba-row"><span class="bx">✕</span>Заявки ночью и в выходные теряются</div>
+        <div class="ba-row"><span class="bx">✕</span>3 часа в день на первичный опрос</div>
+        <div class="ba-row"><span class="bx">✕</span>Клиент уходит к конкуренту</div>
+        <div class="ba-res">Конверсия: 2–3%</div>
+      </div>
+      <div class="ba-card after reveal d1">
+        <div class="ba-lbl">С Travel AI</div>
+        <div class="ba-row"><span class="bv">✓</span>Бот отвечает за 10 секунд, всегда</div>
+        <div class="ba-row"><span class="bv">✓</span>Работает 24/7 — заявки даже в 3 ночи</div>
+        <div class="ba-row"><span class="bv">✓</span>Менеджер получает готовую карточку</div>
+        <div class="ba-row"><span class="bv">✓</span>Клиент выбрал тур — звонит уже тёплым</div>
+        <div class="ba-res">Конверсия: 14–18%</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- FLOW -->
+<section id="flow" class="sec">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">Как работает</div>
+    <h2 class="reveal">От клиента до <em>продажи за минуты</em></h2>
+    <div class="flow-row reveal">
+      <div class="fs"><div class="fs-ic">💬</div><div class="fs-t">Клиент пишет</div><div class="fs-s">на вашем сайте</div></div>
+      <div class="fs"><div class="fs-ic">🤖</div><div class="fs-t">Бот уточняет</div><div class="fs-s">бюджет, даты, страну</div></div>
+      <div class="fs"><div class="fs-ic">🔍</div><div class="fs-t">Поиск туров</div><div class="fs-s">по базе Sletat</div></div>
+      <div class="fs"><div class="fs-ic">🏨</div><div class="fs-t">Подборка</div><div class="fs-s">2–5 вариантов</div></div>
+      <div class="fs"><div class="fs-ic">📋</div><div class="fs-t">Карточка</div><div class="fs-s">в вашу CRM</div></div>
+      <div class="fs"><div class="fs-ic">📞</div><div class="fs-t">Менеджер звонит</div><div class="fs-s">с готовым предложением</div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- DEMO -->
+<section id="demo" class="sec" style="background:var(--g);">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">Живое демо</div>
+    <h2 class="reveal">Попробуйте <em>прямо сейчас</em></h2>
+    <div class="demo-grid">
+      <div class="reveal">
+        <!-- HOT TOURS BAR -->
+        <div class="hot-bar">
+          <div>
+            <div class="hot-title"><span class="hot-badge">ГОРЯЩИЕ</span>Туры со скидкой до 31%</div>
+            <div class="hot-sub">Обновляется каждые 30 минут · Только ближайшие даты</div>
+          </div>
+          <button class="btn-hot" onclick="loadHotTours()">Показать горящие →</button>
+        </div>
+        <div class="filter-card">
+          <div class="fc-title">Параметры тура</div>
+          <div class="fg">
+            <div class="fl"><label>Страна</label>
+              <select id="fCountry">
+                <option>Турция</option><option>Египет</option><option>ОАЭ</option>
+                <option>Таиланд</option><option>Греция</option><option>Мальдивы</option>
+              </select>
+            </div>
+            <div class="fl"><label>Вылет из</label>
+              <select id="fCity"><option>Москвы</option><option>Петербурга</option><option>Екатеринбурга</option></select>
+            </div>
+            <div class="fl"><label>Звёзды</label>
+              <select id="fStars"><option value="3">3★</option><option value="4">4★</option><option value="5" selected>5★</option></select>
+            </div>
+            <div class="fl"><label>Ночей</label>
+              <select id="fNights"><option>5</option><option>7</option><option selected>10</option><option>14</option></select>
+            </div>
+            <div class="fl"><label>Питание</label>
+              <select id="fMeal"><option>Всё включено</option><option>Завтрак</option><option>Без питания</option></select>
+            </div>
+            <div class="fl"><label>Тип</label>
+              <select id="fType"><option>Пляжный</option><option>Экскурсионный</option><option>Семейный</option><option>Для пары</option></select>
+            </div>
+            <div class="fl full">
+              <div class="bv-row">
+                <label>Бюджет на двоих</label>
+                <span class="bv-val" id="bval">80 000 ₽</span>
+              </div>
+              <input type="range" id="fBudget" min="30000" max="300000" step="5000" value="80000"
+                oninput="document.getElementById('bval').textContent=Number(this.value).toLocaleString('ru')+' ₽';updR(this)">
+              <div class="rl"><span>30 000 ₽</span><span>300 000 ₽</span></div>
+            </div>
+          </div>
+          <button class="search-btn" id="sbtn" onclick="doSearch()">Подобрать туры</button>
+          <div class="demo-note">Демо показывает логику работы · Реальные цены через API Sletat</div>
+        </div>
+      </div>
+      <div class="reveal d1">
+        <div class="chat-wrap">
+          <div class="c-hdr">
+            <div class="c-av">✈</div>
+            <div><div class="c-name">Роман</div><div class="c-stat">тур-ассистент · онлайн</div></div>
+          </div>
+          <div class="c-feed" id="dFeed"></div>
+          <div class="qbar" id="dQR"></div>
+          <div class="inp-row">
+            <input class="ci" id="dInp" type="text" placeholder="Напишите вопрос..."
+              onkeydown="if(event.key==='Enter')dSend()">
+            <button class="sb2" onclick="dSend()">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- WHO -->
+<section class="sec">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">Кому подходит</div>
+    <h2 class="reveal">Для кого <em>Travel AI</em></h2>
+    <div class="who-grid">
+      <div class="wcard reveal">
+        <div class="w-ico">🏢</div>
+        <div class="w-t">Турагентства</div>
+        <div class="w-d">Бот работает вместо менеджера на первичном контакте — собирает параметры и передаёт тёплых клиентов.</div>
+        <div class="w-tag">от 1 менеджера</div>
+      </div>
+      <div class="wcard reveal d1">
+        <div class="w-ico">🌐</div>
+        <div class="w-t">Онлайн-агрегаторы</div>
+        <div class="w-d">Обрабатывает сотни запросов одновременно без роста ФОТ. Подключение за 1 день.</div>
+        <div class="w-tag">от 100 заявок/день</div>
+      </div>
+      <div class="wcard reveal d2">
+        <div class="w-ico">👤</div>
+        <div class="w-t">Частные менеджеры</div>
+        <div class="w-d">Принимает заявки пока вы заняты. Ни одно обращение не потеряется.</div>
+        <div class="w-tag">от 1 900 ₽/мес</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:28px;">
+      <button class="btn btn-p" onclick="go('demo')">Попробовать демо</button>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- PILOT -->
+<section id="pilot" class="sec" style="background:var(--g);">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">Пилот</div>
+    <h2 class="reveal">Берём <em>первые агентства</em></h2>
+    <p class="sec-sub reveal">Настраиваем лично, сопровождаем, показываем результат за 14 дней</p>
+    <div class="pilot-grid">
+      <div class="pilot-card reveal">
+        <div class="pc-n">Шаг 1</div>
+        <div class="pc-t">Настраиваем под ваш сайт</div>
+        <div class="pc-d">Вставляем бота сами, без программиста. Цвет, логотип, направления — всё под вас.</div>
+      </div>
+      <div class="pilot-card reveal d1">
+        <div class="pc-n">Шаг 2</div>
+        <div class="pc-t">14 дней работы</div>
+        <div class="pc-d">Бот принимает заявки, вы следите через панель. Мы рядом — отвечаем в течение часа.</div>
+      </div>
+      <div class="pilot-card reveal d2">
+        <div class="pc-n">Шаг 3</div>
+        <div class="pc-t">Отчёт и цифры</div>
+        <div class="pc-d">Показываем: сколько клиентов, заявок, какая конверсия. Данные из вашей аудитории.</div>
+      </div>
+    </div>
+    <div class="p-banner reveal">
+      <div><div class="pb-t">Первые агентства — особые условия</div><div class="pb-s">Приоритетная поддержка · Помощь с настройкой · Лучшая цена навсегда</div></div>
+      <button class="btn btn-w btn-sm" onclick="go('contact')">Получить пилот →</button>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- CASES -->
+<section id="cases" class="sec">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">Кейсы</div>
+    <h2 class="reveal">Реальные результаты <em>пилота</em></h2>
+    <div class="cases-grid">
+      <div class="case-card reveal">
+        <div class="case-ag">ТурСолнышко · Москва · Pro</div>
+        <div class="case-ba">
+          <div class="case-row b">Менеджер отвечал 25 мин. Выходные — мёртвая зона.</div>
+          <div class="case-row a">Бот отвечает за 8 сек. 3 заявки в понедельник утром.</div>
+        </div>
+        <div class="case-res">+41% заявок</div>
+        <div class="case-sub">за первый месяц</div>
+      </div>
+      <div class="case-card reveal d1">
+        <div class="case-ag">AlpsTour · Екатеринбург · Pro</div>
+        <div class="case-ba">
+          <div class="case-row b">2 менеджера тратили 2.5 ч на первичный опрос.</div>
+          <div class="case-row a">Бот собирает всё. Менеджеры звонят с готовым предложением.</div>
+        </div>
+        <div class="case-res">–5 ч в день</div>
+        <div class="case-sub">высвободили у команды</div>
+      </div>
+      <div class="case-card reveal d2">
+        <div class="case-ag">BaliDream · СПб · Premium</div>
+        <div class="case-ba">
+          <div class="case-row b">Конверсия 2.8%. Клиенты не дожидались ответа.</div>
+          <div class="case-row a">Бот отвечает мгновенно. Конверсия выросла с первой недели.</div>
+        </div>
+        <div class="case-res">16.4% конверсия</div>
+        <div class="case-sub">с 2.8% за 3 недели</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:28px;">
+      <button class="btn btn-p" onclick="go('contact')">Получить такой же результат</button>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- HONEST -->
+<section class="sec" style="background:var(--g);">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">Честно</div>
+    <h2 class="reveal">Мы в начале пути — <em>ищем первых партнёров</em></h2>
+    <div class="honest-grid">
+      <div class="hc2 reveal">
+        <div class="hc2-t">Продукт готов</div>
+        <div class="hc2-d">Демо работает сейчас. Попробуйте выше — бот подбирает туры и собирает заявки.</div>
+      </div>
+      <div class="hc2 reveal d1">
+        <div class="hc2-t">Запускаем пилот</div>
+        <div class="hc2-d">Настраиваем лично, сопровождаем и собираем обратную связь от первых агентств.</div>
+      </div>
+      <div class="hc2 reveal d2">
+        <div class="hc2-t">Показываем цифры</div>
+        <div class="hc2-d">Через 14 дней — конкретные данные из вашей реальной аудитории.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- FAQ -->
+<section class="sec">
+  <div class="sec-in">
+    <div class="sec-lbl reveal">FAQ</div>
+    <h2 class="reveal">Частые вопросы</h2>
+    <div class="faq-list">
+      <details class="reveal"><summary>Сложно подключить? <span class="fq">+</span></summary><div class="faq-a">Нет. Один тег &lt;iframe&gt; на сайт — бот появляется. Или мы делаем это за вас. Среднее время: 1 день.</div></details>
+      <details class="reveal"><summary>Нужен программист? <span class="fq">+</span></summary><div class="faq-a">Нет. Всё настраивается через панель управления без кода.</div></details>
+      <details class="reveal"><summary>Что такое «Горящие туры»? <span class="fq">+</span></summary><div class="faq-a">Отдельный бот, который обновляет горящие предложения каждые 30 минут и уведомляет менеджера о новых скидках. Тариф «Горящие туры» — 2 500 ₽/мес.</div></details>
+      <details class="reveal"><summary>Откуда берутся туры? <span class="fq">+</span></summary><div class="faq-a">На Pro — ИИ подбирает варианты с ориентировочными ценами. На Premium — реальные туры из API Sletat с вашими B2B-credentials.</div></details>
+      <details class="reveal"><summary>А если не сработает? <span class="fq">+</span></summary><div class="faq-a">Если за 14 дней нет эффекта — не платите. Настраиваем за вас и показываем результат.</div></details>
+    </div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- PRICING -->
+<section id="pricing" class="sec" style="background:var(--g);">
+  <div class="sec-in">
+    <div class="sec-lbl reveal" style="text-align:center;">Тарифы</div>
+    <h2 class="reveal" style="text-align:center;">Понятные цены, <em>без сюрпризов</em></h2>
+    <div class="plans">
+      <!-- BASIC -->
+      <div class="plan reveal">
+        <div class="p-name">Basic</div>
+        <div class="p-for">Для старта · 1–3 менеджера</div>
+        <div class="p-price"><sup>₽</sup>1 900<sub>/мес</sub></div>
+        <div class="p-vol">до 200 лидов/мес</div>
+        <div class="pdiv"></div>
+        <div class="pf y">Форма подбора на сайте</div>
+        <div class="pf y">Карточка клиента менеджеру</div>
+        <div class="pf y">Панель управления</div>
+        <div class="pf y">Кастомизация бота</div>
+        <div class="pf">ИИ-диалог</div>
+        <div class="pf">Горящие туры</div>
+        <div class="p-cta"><button class="p-btn sec" onclick="scrollContact('Basic')">Подключить</button></div>
+      </div>
+      <!-- HOT TOURS -->
+      <div class="plan hot-plan reveal d1">
+        <div class="p-badge orange">Горящие туры</div>
+        <div class="p-name">Hot Bot</div>
+        <div class="p-for">Бот горящих туров</div>
+        <div class="p-price"><sup>₽</sup>2 500<sub>/мес</sub></div>
+        <div class="p-vol">обновление каждые 30 мин</div>
+        <div class="pdiv"></div>
+        <div class="pf y">Всё из Basic</div>
+        <div class="pf y">Бот горящих туров</div>
+        <div class="pf y">Обновление каждые 30 минут</div>
+        <div class="pf y">Уведомление менеджеру</div>
+        <div class="pf y">Фильтр по бюджету × 1.2</div>
+        <div class="pf">ИИ-диалог с клиентом</div>
+        <div class="p-cta"><button class="p-btn hot-btn" onclick="scrollContact('Hot Bot')">Подключить</button></div>
+      </div>
+      <!-- PRO -->
+      <div class="plan feat reveal d2">
+        <div class="p-badge blue">Популярный</div>
+        <div class="p-name">Pro</div>
+        <div class="p-for">Для роста · 3–10 менеджеров</div>
+        <div class="p-price"><sup>₽</sup>5 900<sub>/мес</sub></div>
+        <div class="p-vol">до 500 диалогов/мес</div>
+        <div class="pdiv"></div>
+        <div class="pf y">Всё из Hot Bot</div>
+        <div class="pf y">ИИ-диалог с клиентом</div>
+        <div class="pf y">2–3 отеля с описанием и ценой</div>
+        <div class="pf y">Аналитика в панели</div>
+        <div class="pf">Реальные цены из Sletat</div>
+        <div class="p-cta"><button class="p-btn pri" onclick="scrollContact('Pro')">Подключить</button></div>
+      </div>
+      <!-- PREMIUM -->
+      <div class="plan reveal d3">
+        <div class="p-name">Premium</div>
+        <div class="p-for">Максимум · 10+ менеджеров</div>
+        <div class="p-price"><sup>₽</sup>12 900<sub>/мес</sub></div>
+        <div class="p-vol">диалоги без ограничений</div>
+        <div class="pdiv"></div>
+        <div class="pf y">Всё из Pro</div>
+        <div class="pf y">Реальные цены из API Sletat</div>
+        <div class="pf y">Точность подбора 95%+</div>
+        <div class="pf y">Ваш B2B-ключ Sletat</div>
+        <div class="pf y">Приоритетная поддержка</div>
+        <div class="p-cta"><button class="p-btn sec" onclick="scrollContact('Premium')">Подключить</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="final">
+  <div class="final-in">
+    <div class="f-lbl">Начните сегодня</div>
+    <div class="f-h">Запустим на вашем сайте за 24 часа</div>
+    <div class="f-sub">Настраиваем лично. Если нет эффекта — не платите.</div>
+    <button class="btn btn-w" onclick="go('contact')">Запустить на моём сайте</button>
+    <div class="f-note">Без программиста · Только 5 мест в пилоте</div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact" class="sec">
+  <div class="sec-in" style="max-width:560px;">
+    <div class="sec-lbl reveal">Заявка на пилот</div>
+    <h2 class="reveal">Запустим <em>за 24 часа</em></h2>
+    <div class="form-card reveal">
+      <div id="fInner">
+        <div class="fgrid">
+          <div class="fld"><label>Агентство</label><input type="text" id="fName" placeholder="Название"></div>
+          <div class="fld"><label>Ваше имя</label><input type="text" id="fContact" placeholder="Имя"></div>
+          <div class="fld"><label>Телефон / Telegram</label><input type="text" id="fPhone" placeholder="+7 999 ..."></div>
+          <div class="fld"><label>Тариф</label>
+            <select id="fPlan">
+              <option value="Basic">Basic — 1 900 ₽/мес</option>
+              <option value="Hot Bot">Горящие туры — 2 500 ₽/мес</option>
+              <option value="Pro" selected>Pro — 5 900 ₽/мес</option>
+              <option value="Premium">Premium — 12 900 ₽/мес</option>
+            </select>
+          </div>
+          <div class="fld"><label>Сайт</label><input type="text" id="fSite" placeholder="https://..."></div>
+          <div class="fld"><label>Команда</label>
+            <select id="fTeam">
+              <option>1–3 менеджера</option><option>4–10 менеджеров</option><option>10+ менеджеров</option>
+            </select>
+          </div>
+        </div>
+        <div id="fAlert"></div>
+        <button class="sub-btn" id="fBtn" onclick="submitLead()">Запустить на моём сайте →</button>
+        <div class="f-promise">Настроим сами · Если нет эффекта — не платите</div>
+      </div>
+      <div class="success" id="fSuccess">
+        <div class="s-ico">✓</div>
+        <div class="s-t">Заявка принята</div>
+        <div class="s-d">Свяжемся в течение 24 часов и настроим бота на вашем сайте.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-logo"><div class="fm">T</div><div class="flt">Travel<em>AI</em></div></div>
+  <div class="fcopy">© 2026 Travel AI</div>
+</footer>
+`;

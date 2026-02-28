@@ -8,7 +8,7 @@ export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('generator');
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       
       <main className="flex-1 p-10 overflow-y-auto">
@@ -17,8 +17,8 @@ export const Dashboard = () => {
         {activeTab === 'tariffs' && <Tariffs />}
         {activeTab === 'settings' && (
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-black text-white mb-4">Настройки бота</h1>
-            <p className="text-white/50">Здесь будут настройки интеграции с WhatsApp и CRM.</p>
+            <h1 className="text-3xl font-black text-slate-900 mb-4">Настройки бота</h1>
+            <p className="text-slate-600">Здесь будут настройки интеграции с WhatsApp и CRM.</p>
           </div>
         )}
       </main>
