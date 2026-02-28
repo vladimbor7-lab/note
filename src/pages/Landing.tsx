@@ -56,10 +56,30 @@ const landingHtml = `
   <div class="hero-in">
     <div>
       <div class="hero-tag"><span class="pulse"></span>Твой второй мозг для продажи туров</div>
-      <h1>Перестаньте копировать тексты отелей — пусть ИИ сделает это за вас</h1>
-      <p class="hero-desc">Первый ассистент для профи, интегрированный с Отправкин.ру. Пишет продающие подборки, анализирует отели и дожимает клиентов в WhatsApp.</p>
-      <div class="hero-btns">
-        <button class="btn btn-p" onclick="document.getElementById('demo-input').focus()">Попробовать (Агент)</button>
+      <h1>Travel-консультант нового поколения. Продавайте туры, а не просто копируйте ссылки</h1>
+      <p class="hero-desc">Интеграция с Отправкин.ру, интеллект Claude 3.5 и мгновенная упаковка в Telegram.</p>
+      
+      <!-- OTPROVIN DEMO FILTER -->
+      <div style="background: white; padding: 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 30px; max-width: 500px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;">
+           <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #475569; white-space: nowrap;">🇹🇷 Турция</div>
+           <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #475569; white-space: nowrap;">📅 15.09 - 25.09</div>
+           <div style="background: #f1f5f9; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; color: #475569; white-space: nowrap;">🌙 7-10 ночей</div>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 5px;">
+            <span>Бюджет</span>
+            <span>до 250 000 ₽</span>
+          </div>
+          <div style="height: 6px; background: #e2e8f0; border-radius: 3px; position: relative;">
+            <div style="position: absolute; left: 0; width: 70%; height: 100%; background: #3b82f6; border-radius: 3px;"></div>
+            <div style="position: absolute; left: 70%; top: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; background: white; border: 2px solid #3b82f6; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+          </div>
+        </div>
+        <button class="btn btn-p" style="width: 100%; justify-content: center;" onclick="document.getElementById('demo-input').focus()">Найти и упаковать с ИИ</button>
+      </div>
+
+      <div class="hero-btns" style="margin-top: 30px;">
         <button class="btn btn-o" onclick="window.location.href='/chat'">Я турист (Бот)</button>
       </div>
       <div class="hero-note">Без регистрации · 3 генерации в день бесплатно</div>
@@ -117,18 +137,18 @@ const landingHtml = `
     <div class="who-grid">
       <div class="wcard reveal">
         <div class="w-ico">🪄</div>
-        <div class="w-t">Otprovin Magic</div>
-        <div class="w-d">Вставь ссылку на подборку Отправкина — ИИ вытянет концепции отелей. "Отель А — для тишины, Отель Б — для тусовки".</div>
+        <div class="w-t">Otprovin Connect</div>
+        <div class="w-d">Вставьте ссылку — получите анализ. ИИ мгновенно изучит отели в вашей подборке и выделит главные аргументы для продажи.</div>
       </div>
       <div class="wcard reveal d1">
         <div class="w-ico">💬</div>
-        <div class="w-t">WhatsApp Дожим</div>
-        <div class="w-d">Идеальные тексты для мессенджеров за 2 секунды. Мягкие напоминания клиентам через 2 дня.</div>
+        <div class="w-t">Human Style</div>
+        <div class="w-d">Никаких роботов. Claude 3.5 пишет так тепло и экспертно, что клиенты будут уверены: это написали вы лично.</div>
       </div>
       <div class="wcard reveal d2">
-        <div class="w-ico">🕵️</div>
-        <div class="w-t">Стелс-режим</div>
-        <div class="w-d">Кнопка "Скрыть названия". Влюбите клиента в описание отеля, чтобы он не ушел бронировать на Яндекс.</div>
+        <div class="w-ico">📱</div>
+        <div class="w-t">WhatsApp Ready</div>
+        <div class="w-d">Готовый оффер в один клик. Идеальное форматирование с эмодзи, которое читается на любом смартфоне.</div>
       </div>
     </div>
   </div>
@@ -142,27 +162,26 @@ const landingHtml = `
     <div class="plans">
       <!-- FREE -->
       <div class="plan reveal">
-        <div class="p-name">Пробный</div>
-        <div class="p-for">Попробовать сленг</div>
+        <div class="p-name">Free (Trial)</div>
+        <div class="p-for">Попробовать</div>
         <div class="p-price">0 <sup>₽</sup></div>
-        <div class="p-vol">3 генерации/сутки</div>
+        <div class="p-vol">3 консультации/день</div>
         <div class="pdiv"></div>
-        <div class="pf y">Базовая модель (Gemini Flash)</div>
+        <div class="pf y">Базовая модель</div>
         <div class="pf y">Посты для соцсетей</div>
         <div class="pf">Анализ Отправкина</div>
-        <div class="pf">Claude 3.5 Sonnet</div>
         <div class="p-cta"><button class="p-btn sec" onclick="window.location.href='/dashboard'">Попробовать</button></div>
       </div>
       <!-- AGENT PRO -->
       <div class="plan hot-plan reveal d1">
         <div class="p-badge blue">Самый выгодный</div>
-        <div class="p-name">Агент-Про</div>
+        <div class="p-name">Pro (Expert)</div>
         <div class="p-for">Основной продукт</div>
-        <div class="p-price">1 490 <sup>₽</sup><sub>/мес</sub></div>
-        <div class="p-vol">50-100 запросов/день</div>
+        <div class="p-price">1 990 <sup>₽</sup><sub>/мес</sub></div>
+        <div class="p-vol">Безлимит</div>
         <div class="pdiv"></div>
         <div class="pf y"><b>Claude 3.5 Sonnet</b></div>
-        <div class="pf y">Анализ ссылок Отправкина</div>
+        <div class="pf y">Приоритетный анализ</div>
         <div class="pf y">Функция "Дожим клиента"</div>
         <div class="pf y">Кнопка "Реновация"</div>
         <div class="pf y">Стелс-режим</div>
@@ -170,13 +189,13 @@ const landingHtml = `
       </div>
       <!-- AGENCY -->
       <div class="plan reveal d2">
-        <div class="p-name">Агентство</div>
+        <div class="p-name">Agency (Team)</div>
         <div class="p-for">Команда / VIP</div>
         <div class="p-price">4 900 <sup>₽</sup><sub>/мес</sub></div>
-        <div class="p-vol">До 5 сотрудников</div>
+        <div class="p-vol">До 3-х менеджеров</div>
         <div class="pdiv"></div>
-        <div class="pf y">Всё из Агент-Про</div>
-        <div class="pf y">Общая база знаний</div>
+        <div class="pf y">Всё из Pro</div>
+        <div class="pf y">Общий архив подборок</div>
         <div class="pf y">Приоритетная поддержка</div>
         <div class="pf y">Обучение продажам через ИИ</div>
         <div class="p-cta"><button class="p-btn sec" onclick="window.location.href='/dashboard'">Подключить</button></div>
