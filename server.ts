@@ -3,6 +3,7 @@ import cors from 'cors';
 import { createServer as createViteServer } from 'vite';
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenAI } from '@google/genai';
+import * as cheerio from 'cheerio';
 
 const app = express();
 const PORT = 3000;
@@ -17,6 +18,28 @@ const anthropic = new Anthropic({
 
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
+// Helper function to extract text from URL
+async function fetchUrlContent(url: string): Promise<string> {
+  try {
+    const response = await fetch(url);
+    const html = await response.text();
+    const $ = cheerio.load(html);
+    
+    // Remove scripts, styles, and other non-content elements
+    $('script').remove();
+    $('style').remove();
+    $('nav').remove();
+    $('footer').remove();
+    
+    // Extract text from body
+    const text = $('body').text().replace(/\s+/g, ' ').trim();
+    return text.substring(0, 5000); // Limit to 5000 chars to avoid token limits
+  } catch (error) {
+    console.error(`Error fetching URL ${url}:`, error);
+    return '';
+  }
+}
+
 // API Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -25,6 +48,19 @@ app.get('/api/health', (req, res) => {
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, model = 'claude' } = req.body;
+    
+    // Extract URL from message if present (simple regex)
+    const urlMatch = message.match(/https?:\/\/[^\s]+/);
+    let enhancedMessage = message;
+    
+    if (urlMatch) {
+      const url = urlMatch[0];
+      console.log(`Fetching content for URL: ${url}`);
+      const urlContent = await fetchUrlContent(url);
+      if (urlContent) {
+        enhancedMessage += `\n\n[System: The following content was extracted from the link: ${url}]\n${urlContent}\n[End of link content]`;
+      }
+    }
 
     if (model === 'claude') {
       if (!process.env.CLAUDE_API_KEY) {
@@ -34,7 +70,7 @@ app.post('/api/chat', async (req, res) => {
       const response = await anthropic.messages.create({
         model: "claude-3-5-sonnet-20240620",
         max_tokens: 1024,
-        messages: [{ role: "user", content: message }],
+        messages: [{ role: "user", content: enhancedMessage }],
       });
 
       // @ts-ignore - content[0] is TextBlock
@@ -47,7 +83,7 @@ app.post('/api/chat', async (req, res) => {
       
       const response = await genAI.models.generateContent({
         model: "gemini-2.0-flash-exp",
-        contents: message
+        contents: enhancedMessage
       });
       
       res.json({ reply: response.text });

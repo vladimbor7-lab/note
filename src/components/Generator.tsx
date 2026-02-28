@@ -3,6 +3,8 @@ import { Sparkles, Copy, Check, Eye, EyeOff } from 'lucide-react';
 
 export const Generator = () => {
   const [rawText, setRawText] = useState('');
+  const [otprovinLink, setOtprovinLink] = useState('');
+  const [blacklist, setBlacklist] = useState('');
   const [audience, setAudience] = useState('Семья с детьми');
   const [profile, setProfile] = useState('Обычный турист');
   const [stealthMode, setStealthMode] = useState(false);
@@ -11,26 +13,33 @@ export const Generator = () => {
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
-    if (!rawText) return;
+    if (!rawText && !otprovinLink) return;
     setIsGenerating(true);
     try {
       const prompt = `
         Ты - профессиональный турагент, использующий модель Claude 3.5 Sonnet.
-        Твоя задача - переписать сухой текст от туроператора или описание отеля в продающий, эмоциональный пост для WhatsApp.
+        Твоя задача - создать продающий, эмоциональный пост для WhatsApp на основе предоставленных данных.
         
         Входные данные:
-        - Текст/Ссылка: ${rawText}
+        - Описание/Запрос: ${rawText}
+        - Ссылка на подборку (Отправкин.ру): ${otprovinLink || 'Не указана'}
         - Аудитория: ${audience}
         - Психотип клиента: ${profile}
-        - Стелс-режим: ${stealthMode ? 'ВКЛЮЧЕН (Не называй отель! Описывай его так, чтобы клиент влюбился, но не мог найти сам. Используй фразы "Этот отель...", "Роскошная пятерка в Белеке..." и т.д.)' : 'ВЫКЛЮЧЕН (Называй отель открыто)'}
+        - Стелс-режим: ${stealthMode ? 'ВКЛЮЧЕН (Не называй отели! Описывай их так, чтобы клиент влюбился, но не мог найти сам. Используй фразы "Этот отель...", "Роскошная пятерка в Белеке..." и т.д.)' : 'ВЫКЛЮЧЕН (Называй отели открыто)'}
+        - Черный список отелей (НЕ ПРЕДЛАГАТЬ): ${blacklist || 'Нет'}
 
         Инструкция:
-        1. Используй emoji, но не перебарщивай.
+        1. Если есть ссылка на Отправкин.ру, проанализируй её (представь, что ты видишь отели по ссылке) и выдели их концепции.
+           - Если ссылка на подборку из нескольких отелей, напиши: "Я проанализировал вашу подборку. Отель №1 идеален для..., а №3 сейчас на акции".
+           - Сгенерируй "Текст-мост": "Мария (или имя клиента), здравствуйте! Я подготовил для вас варианты... Самый интересный — [Название/Описание], там... Посмотрите детали по ссылке: ${otprovinLink}".
         2. Структурируй текст: Заголовок, Главные фишки, Для кого подходит, Цена (если есть), Призыв к действию.
-        3. Если это ссылка на Отправкин.ру, проанализируй отели и выдели их концепции (Тихий/Тусовочный/Детский).
-        4. Если выбран психотип "Мамочка-паникер" - упор на безопасность, питание, врачей.
-        5. Если "Любитель лакшери" - упор на бренды, сервис, эксклюзив.
-        6. Если "Экономный скептик" - упор на выгоду и честные отзывы.
+        3. Используй emoji, но умеренно.
+        4. Учитывай психотип:
+           - "Мамочка-паникер": упор на безопасность, питание, врачей.
+           - "Любитель лакшери": упор на бренды, сервис, эксклюзив.
+           - "Экономный скептик": упор на выгоду и честные отзывы.
+        5. В конце текста ОБЯЗАТЕЛЬНО добавь подпись мелким шрифтом или курсивом: 
+           "🤖 Анализ проведен нейросетью AIAIAI на базе отзывов 2024-2025 гг."
       `;
 
       const response = await fetch('/api/chat', {
@@ -98,10 +107,33 @@ export const Generator = () => {
             </div>
           </div>
 
+          {/* Otprovin Link Input */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ссылка на подборку (Отправкин.ру)</label>
+            <input 
+              type="text"
+              value={otprovinLink}
+              onChange={(e) => setOtprovinLink(e.target.value)}
+              placeholder="https://otprovin.ru/..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-700 transition-colors text-sm"
+            />
+          </div>
+
+          {/* Blacklist Input */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Черный список отелей (База знаний)</label>
+            <textarea 
+              value={blacklist}
+              onChange={(e) => setBlacklist(e.target.value)}
+              placeholder="Отели, которые я ненавижу и не продаю..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-700 transition-colors text-sm h-20 resize-none"
+            />
+          </div>
+
           {/* Input Area */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col h-[400px] shadow-sm relative">
+          <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col h-[200px] shadow-sm relative">
             <div className="flex justify-between items-center mb-3">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Исходные данные</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Доп. пожелания / Описание</label>
               <button 
                 onClick={() => setStealthMode(!stealthMode)}
                 className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg transition-colors ${stealthMode ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
@@ -113,7 +145,7 @@ export const Generator = () => {
             <textarea 
               value={rawText}
               onChange={(e) => setRawText(e.target.value)}
-              placeholder="Вставьте ссылку на подборку Отправкин.ру или текст отеля..."
+              placeholder="Например: нужно сделать акцент на питании..."
               className="flex-1 bg-transparent resize-none text-slate-900 outline-none placeholder:text-slate-400 text-sm leading-relaxed"
             />
             {stealthMode && (
@@ -125,7 +157,7 @@ export const Generator = () => {
 
           <button 
             onClick={handleGenerate}
-            disabled={isGenerating || !rawText}
+            disabled={isGenerating || (!rawText && !otprovinLink)}
             className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white py-4 rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-sm"
           >
             {isGenerating ? <span className="animate-pulse">Claude пишет пост...</span> : <><Sparkles size={18} /> Сгенерировать</>}
@@ -133,7 +165,7 @@ export const Generator = () => {
         </div>
 
         {/* Result Area */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col h-[550px] relative shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col h-[600px] relative shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Результат (WhatsApp)</label>
             {result && (
@@ -150,7 +182,7 @@ export const Generator = () => {
               <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm text-center px-8">
                 <Sparkles size={32} className="mb-3 opacity-20" />
                 <p>Здесь появится продающий текст.</p>
-                <p className="text-xs mt-2 opacity-60">Попробуйте вставить ссылку на отель и включить "Стелс-режим".</p>
+                <p className="text-xs mt-2 opacity-60">Вставьте ссылку на Отправкин.ру, чтобы ИИ проанализировал подборку.</p>
               </div>
             )}
           </div>
