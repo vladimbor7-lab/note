@@ -73,7 +73,7 @@ export function NotesApp() {
               <span className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
                 <FileText className="w-5 h-5" />
               </span>
-              Second Brain
+              Cloud AI
             </h1>
             <button 
               onClick={handleCreateNote}

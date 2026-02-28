@@ -86,8 +86,8 @@ app.post('/api/chat', async (req, res) => {
     } else if (task === 'summary') {
         systemInstruction = `Ты - личный ассистент. Твоя задача - написать краткое резюме (summary) текста (максимум 3 предложения) и выделить основные Action Items (если есть).`;
     } else {
-        // Default chat mode (Second Brain Assistant)
-        systemInstruction = `Ты - умный помощник "Second Brain". Твоя задача - помогать пользователю развивать мысли, находить связи и структурировать информацию. Будь краток и полезен.`;
+        // Default chat mode (Cloud AI Assistant)
+        systemInstruction = `Ты - умный помощник "Cloud AI". Твоя задача - помогать пользователю развивать мысли, находить связи и структурировать информацию. Будь краток и полезен.`;
     }
 
     const response = await activeGenAI.models.generateContent({
