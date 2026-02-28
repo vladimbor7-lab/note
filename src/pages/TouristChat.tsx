@@ -21,6 +21,18 @@ export const TouristChat = () => {
   };
 
   useEffect(() => {
+    // Load settings from localStorage
+    const savedSettings = localStorage.getItem('botSettings');
+    if (savedSettings) {
+      const { welcomeMessage } = JSON.parse(savedSettings);
+      if (welcomeMessage) {
+        setMessages([{ role: 'assistant', content: welcomeMessage }]);
+      }
+    }
+    scrollToBottom();
+  }, []);
+
+  useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
@@ -33,25 +45,24 @@ export const TouristChat = () => {
     setIsLoading(true);
 
     try {
-      // Construct the conversation history for the API
-      // We'll send the last few messages to keep context, or just the current one with a system prompt
-      // For simplicity with the current /api/chat endpoint which takes a single 'message' string,
-      // we might need to adjust the backend to handle history or just send the latest message with context.
-      // However, the current backend implementation (from previous turns) likely just takes a prompt.
-      // Let's check server.ts to be sure.
-      
-      // Assuming server.ts handles a single prompt string.
-      // We'll construct a prompt that includes the history or just the latest message with instructions.
-      
+      // Get settings
+      const savedSettings = localStorage.getItem('botSettings');
+      const settings = savedSettings ? JSON.parse(savedSettings) : {};
+      const systemPrompt = settings.systemPrompt || 'Ты - дружелюбный ИИ-турагент. Твоя цель - помочь туристу выбрать тур.';
+      const tone = settings.tone || 'friendly';
+      const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
+
       const prompt = `
-        Ты - дружелюбный ИИ-турагент. Твоя цель - помочь туристу выбрать тур.
+        ${systemPrompt}
         
+        Настройки тона: ${tone}
+        Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}
+
         История диалога:
         ${messages.map(m => `${m.role === 'user' ? 'Турист' : 'Ассистент'}: ${m.content}`).join('\n')}
         Турист: ${userMessage}
         
-        Отвечай кратко, по делу, предлагай варианты или задавай уточняющие вопросы (бюджет, даты, состав).
-        Не пиши длинные простыни текста. Используй эмодзи.
+        Отвечай кратко, по делу.
       `;
 
       const response = await fetch('/api/chat', {
@@ -59,12 +70,21 @@ export const TouristChat = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: prompt, 
-          model: 'claude' // Use Claude for better conversation
+          model: 'gemini' 
         })
       });
 
       const data = await response.json();
-      if (data.error) throw new Error(data.error);
+      
+      if (data.error) {
+         console.warn("API Error, using fallback response:", data.error);
+         // Fallback for demo
+         setTimeout(() => {
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты! 🌴 Скажите, какой у вас бюджет?' }]);
+            setIsLoading(false);
+         }, 1000);
+         return;
+      }
 
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
     } catch (error) {

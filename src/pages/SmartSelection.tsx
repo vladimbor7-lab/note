@@ -17,11 +17,18 @@ export const SmartSelection = () => {
     setIsTyping(true);
 
     try {
+      const savedSettings = localStorage.getItem('botSettings');
+      const settings = savedSettings ? JSON.parse(savedSettings) : {};
+      const tone = settings.tone || 'friendly';
+      const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          message: `Ты - ИИ-помощник турагента для туриста. Контекст: Турист смотрит подборку (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос туриста: ${input}. Отвечай кратко, честно, продавай ценность. В конце добавь дисклеймер.`, 
+          message: `Ты - ИИ-помощник турагента для туриста. Контекст: Турист смотрит подборку (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос туриста: ${input}. 
+          Настройки тона: ${tone}. Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}.
+          Отвечай кратко, честно, продавай ценность. В конце добавь дисклеймер.`, 
           model: 'claude' 
         })
       });

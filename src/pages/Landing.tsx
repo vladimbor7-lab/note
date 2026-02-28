@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SearchWidget } from '../components/SearchWidget';
+import { LandingChat } from '../components/LandingChat';
 import { MessageCircle, Check, Zap, Globe, Shield } from 'lucide-react';
 import '../landing.css';
 
@@ -14,7 +14,7 @@ export const Landing = () => {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <a href="#" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black text-lg group-hover:rotate-12 transition-transform">T</div>
-            <div className="font-bold text-xl tracking-tight">Travel<em className="text-blue-600 not-italic">AI</em></div>
+            <div className="font-bold text-xl tracking-tight">AIAIAI<em className="text-blue-600 not-italic">Travel</em></div>
           </a>
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
             <span className="hover:text-blue-600 cursor-pointer transition-colors">Демо агента</span>
@@ -34,14 +34,14 @@ export const Landing = () => {
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold mb-6">
               <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-              Твой второй мозг для продажи туров
+              AIAIAI Travel
             </div>
             <h1 className="text-5xl lg:text-6xl font-black leading-[1.1] mb-6 tracking-tight">
-              Travel-консультант <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">нового поколения</span>
+              Ваш ИИ-ассистент, <br/>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">который продает туры.</span>
             </h1>
             <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
-              Интеграция с Отправкин.ру, интеллект Claude 3.5 и мгновенная упаковка подборок в Telegram. Продавайте туры, а не просто копируйте ссылки.
+              Пока вы отдыхаете. Автоматическая упаковка подборок из Отправкин.ру в WhatsApp. ИИ-консультация для ваших туристов 24/7.
             </p>
             
             <div className="flex flex-wrap gap-4 mb-12">
@@ -69,33 +69,24 @@ export const Landing = () => {
             </div>
           </div>
 
-          {/* RIGHT SIDE - INTERACTIVE WIDGETS */}
-          <div className="relative">
+          {/* RIGHT SIDE - INTERACTIVE CHAT */}
+          <div className="relative flex justify-center lg:justify-end">
              {/* Background blobs */}
-             <div className="absolute -top-20 -right-20 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-             <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-violet-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
              
-             {/* The Search Widget Container */}
-             <div className="relative z-10 space-y-6">
-                <div className="bg-white/60 backdrop-blur-sm border border-white/50 p-6 rounded-3xl shadow-2xl">
-                   <div className="mb-4 flex items-center justify-between">
-                      <h3 className="font-bold text-slate-900">Поиск туров (Демо)</h3>
-                      <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">Live Integration</span>
-                   </div>
-                   <SearchWidget />
-                </div>
-
-                {/* Chat Preview (Small) */}
-                <div className="bg-white p-4 rounded-2xl shadow-lg border border-slate-100 flex items-center gap-4 max-w-sm ml-auto transform translate-x-4">
-                   <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white">
+             {/* The Chat Widget Container */}
+             <div className="relative z-10 w-full max-w-md">
+                <LandingChat />
+                
+                {/* Floating Badge */}
+                <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce" style={{ animationDuration: '3s' }}>
+                   <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/30">
                       <MessageCircle size={20} />
                    </div>
                    <div>
-                      <div className="text-xs text-slate-500 font-bold">WhatsApp</div>
-                      <div className="text-sm font-medium text-slate-900">Подборка отправлена туристу</div>
-                   </div>
-                   <div className="ml-auto text-green-500">
-                      <Check size={20} />
+                      <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Статус</div>
+                      <div className="text-sm font-bold text-slate-900">Бот активен 24/7</div>
                    </div>
                 </div>
              </div>
@@ -145,18 +136,18 @@ export const Landing = () => {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
               <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl mb-6">🪄</div>
-              <h3 className="text-xl font-bold mb-3">Otprovin Connect</h3>
-              <p className="text-slate-600 leading-relaxed">Вставьте ссылку — получите анализ. ИИ мгновенно изучит отели в вашей подборке и выделит главные аргументы для продажи.</p>
+              <h3 className="text-xl font-bold mb-3">Мгновенный оффер</h3>
+              <p className="text-slate-600 leading-relaxed">Вставьте ссылку на Отправкин — получите идеальный текст для WhatsApp за 5 секунд.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
               <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl mb-6">💬</div>
-              <h3 className="text-xl font-bold mb-3">Human Style</h3>
-              <p className="text-slate-600 leading-relaxed">Никаких роботов. Claude 3.5 пишет так тепло и экспертно, что клиенты будут уверены: это написали вы лично.</p>
+              <h3 className="text-xl font-bold mb-3">Умная витрина</h3>
+              <p className="text-slate-600 leading-relaxed">Отправьте клиенту ссылку на персонального ИИ-гида по вашим отелям. Он ответит на все вопросы клиента за вас.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
               <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mb-6">📱</div>
-              <h3 className="text-xl font-bold mb-3">WhatsApp Ready</h3>
-              <p className="text-slate-600 leading-relaxed">Готовый оффер в один клик. Идеальное форматирование с эмодзи, которое читается на любом смартфоне.</p>
+              <h3 className="text-xl font-bold mb-3">Дожим 2.0</h3>
+              <p className="text-slate-600 leading-relaxed">ИИ анализирует поведение туриста и подсказывает вам, когда пора звонить и закрывать сделку.</p>
             </div>
           </div>
         </div>
@@ -173,13 +164,13 @@ export const Landing = () => {
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Free */}
             <div className="bg-white p-8 rounded-3xl border border-slate-200">
-              <div className="font-bold text-slate-900 text-xl mb-1">Free (Trial)</div>
+              <div className="font-bold text-slate-900 text-xl mb-1">Start (Free)</div>
               <div className="text-slate-500 text-sm mb-6">Попробовать</div>
               <div className="text-4xl font-black text-slate-900 mb-6">0 ₽</div>
               <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> 3 консультации/день</div>
+                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> 2 ссылки из Отправкина/день</div>
                 <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Базовая модель</div>
-                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Анализ Отправкина</div>
+                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Тест ИИ-упаковки</div>
               </div>
               <button onClick={() => navigate('/dashboard')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-3 rounded-xl transition-colors">Попробовать</button>
             </div>
@@ -187,12 +178,12 @@ export const Landing = () => {
             {/* Pro */}
             <div className="bg-slate-900 p-8 rounded-3xl border border-slate-800 text-white relative transform md:-translate-y-4 shadow-2xl">
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-xs font-bold">Самый выгодный</div>
-              <div className="font-bold text-white text-xl mb-1">Pro (Expert)</div>
+              <div className="font-bold text-white text-xl mb-1">Expert</div>
               <div className="text-slate-400 text-sm mb-6">Основной продукт</div>
               <div className="text-4xl font-black text-white mb-6">1 990 ₽<span className="text-lg text-slate-500 font-normal">/мес</span></div>
               <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-blue-400" /> <b>Claude 3.5 Sonnet</b></div>
-                <div className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-blue-400" /> Безлимит генераций</div>
+                <div className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-blue-400" /> <b>Безлимит по ссылкам</b></div>
+                <div className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-blue-400" /> ИИ-консультант для туристов</div>
                 <div className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-blue-400" /> Функция "Дожим клиента"</div>
                 <div className="flex items-center gap-2 text-sm text-slate-300"><Check size={16} className="text-blue-400" /> Стелс-режим</div>
               </div>
@@ -201,13 +192,13 @@ export const Landing = () => {
 
             {/* Agency */}
             <div className="bg-white p-8 rounded-3xl border border-slate-200">
-              <div className="font-bold text-slate-900 text-xl mb-1">Agency (Team)</div>
+              <div className="font-bold text-slate-900 text-xl mb-1">Agency</div>
               <div className="text-slate-500 text-sm mb-6">Команда / VIP</div>
               <div className="text-4xl font-black text-slate-900 mb-6">4 900 ₽<span className="text-lg text-slate-500 font-normal">/мес</span></div>
               <div className="space-y-3 mb-8">
-                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Всё из Pro</div>
+                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Всё из Expert</div>
                 <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> До 3-х менеджеров</div>
-                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Общий архив подборок</div>
+                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Логотип на страницах туристов</div>
               </div>
               <button onClick={() => navigate('/dashboard')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-3 rounded-xl transition-colors">Подключить</button>
             </div>

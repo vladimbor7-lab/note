@@ -66,32 +66,67 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    if (model === 'claude') {
-      if (!process.env.CLAUDE_API_KEY) {
-        return res.status(500).json({ error: 'Claude API key not configured' });
-      }
+    if (model === 'claude' && process.env.CLAUDE_API_KEY) {
+      try {
+        const response = await anthropic.messages.create({
+          model: "claude-3-5-sonnet-20240620",
+          max_tokens: 1024,
+          messages: [{ role: "user", content: enhancedMessage }],
+        });
 
-      const response = await anthropic.messages.create({
-        model: "claude-3-5-sonnet-20240620",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: enhancedMessage }],
-      });
-
-      // @ts-ignore - content[0] is TextBlock
-      res.json({ reply: response.content[0].text });
-    } else {
-      // Fallback to Gemini
-      if (!process.env.GEMINI_API_KEY) {
-        return res.status(500).json({ error: 'Gemini API key not configured' });
+        // @ts-ignore
+        const text = response.content[0].text;
+        return res.json({ reply: text });
+      } catch (e) {
+        console.error('Claude API failed, falling back to Gemini', e);
+        // Fallback to Gemini below
       }
-      
-      const response = await genAI.models.generateContent({
-        model: "gemini-2.0-flash-exp",
-        contents: enhancedMessage
-      });
-      
-      res.json({ reply: response.text });
     }
+
+    // Gemini Handler
+    // User explicitly provided this key. We prioritize it to debug the "Invalid Key" issue.
+    const HARDCODED_KEY = "AIzaSyDw7qYOu5DvLiDhfaAeLazRRMgWKaLLNu8";
+    let apiKey = HARDCODED_KEY; 
+    
+    if (!apiKey) {
+       // Fallback to env vars if hardcoded key is removed
+       apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    }
+    
+    if (!apiKey) {
+      console.error("No API key found for Gemini");
+      return res.status(500).json({ error: 'AI API keys not configured' });
+    }
+
+    apiKey = apiKey.trim();
+    console.log(`Using API Key: ${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`);
+    
+    if (!apiKey.startsWith('AIza')) {
+       console.warn("Warning: API Key does not start with 'AIza'. It might be invalid.");
+    }
+    
+    // Re-initialize with the found key if needed, or rely on the global instance if it was init correctly.
+    // Since we initialized genAI globally with process.env.GEMINI_API_KEY, we might need to create a new instance if that was undefined.
+    const activeGenAI = new GoogleGenAI({ apiKey });
+
+    const response = await activeGenAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: enhancedMessage,
+      config: {
+        systemInstruction: `Ты - опытный и конкретный турагент. Твоя цель - помочь клиенту выбрать и купить тур.
+        
+        Правила общения:
+        1. Если клиент называет направление (например, "Мармарис"), НЕ пиши общие фразы "Ах, как там красиво!". Сразу переходи к делу.
+        2. Если не знаешь бюджет, даты или состав туристов - ОБЯЗАТЕЛЬНО спроси это в первом же ответе.
+        3. Когда предлагаешь варианты, давай конкретику: Название отеля, Звездность, Краткое описание (плюсы/минусы), Примерный бюджет.
+        4. Предлагай обычно 3 варианта: Эконом, Средний, Люкс.
+        5. Используй списки и форматирование для удобства чтения.
+        6. Будь вежлив и позитивен (используй эмодзи), но не перегибай с "водой". Твоя задача - продать экспертность.`,
+      }
+    });
+    
+    res.json({ reply: response.text });
+
   } catch (error: any) {
     console.error('AI Error:', error);
     res.status(500).json({ error: error.message || 'Internal Server Error' });

@@ -93,15 +93,41 @@ export const BotSettings = () => {
           </div>
         </div>
 
-        {/* Save Button */}
-        <div className="pt-4 border-t border-slate-100 flex justify-end">
+        {/* Actions */}
+        <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
           <button 
-            onClick={handleSave}
-            className={`px-6 py-3 rounded-xl font-bold text-white flex items-center gap-2 transition-all ${isSaved ? 'bg-green-500' : 'bg-blue-600 hover:bg-blue-700'}`}
+            onClick={() => {
+              if (window.confirm('Сбросить настройки к заводским?')) {
+                localStorage.removeItem('botSettings');
+                setSettings({
+                  welcomeMessage: 'Привет! Я ваш персональный ИИ-турагент. Куда планируете полететь? 🌍',
+                  systemPrompt: 'Ты - дружелюбный ИИ-турагент. Твоя цель - помочь туристу выбрать тур. Отвечай кратко, по делу, предлагай варианты или задавай уточняющие вопросы.',
+                  tone: 'friendly',
+                  useEmoji: true
+                });
+              }
+            }}
+            className="text-slate-400 hover:text-red-500 text-sm font-medium transition-colors"
           >
-            {isSaved ? 'Сохранено!' : 'Сохранить настройки'}
-            {!isSaved && <Save size={18} />}
+            Сбросить настройки
           </button>
+
+          <div className="flex gap-3">
+            <button 
+              onClick={() => window.open('/chat', '_blank')}
+              className="px-6 py-3 rounded-xl font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center gap-2"
+            >
+              <MessageSquare size={18} />
+              Тест бота
+            </button>
+            <button 
+              onClick={handleSave}
+              className={`px-6 py-3 rounded-xl font-bold text-white flex items-center gap-2 transition-all ${isSaved ? 'bg-green-500' : 'bg-blue-600 hover:bg-blue-700'}`}
+            >
+              {isSaved ? 'Сохранено!' : 'Сохранить настройки'}
+              {!isSaved && <Save size={18} />}
+            </button>
+          </div>
         </div>
 
       </div>

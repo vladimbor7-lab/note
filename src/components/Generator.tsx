@@ -83,7 +83,7 @@ export const Generator = () => {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: prompt, model: 'claude' })
+        body: JSON.stringify({ message: prompt, model: 'gemini' })
       });
 
       const data = await response.json();
@@ -239,7 +239,7 @@ export const Generator = () => {
         {/* Result Area */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4 flex flex-col h-[600px] relative shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Результат (WhatsApp)</label>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Результат</label>
             {result && (
               <button onClick={handleCopy} className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm font-bold">
                 {copied ? <Check size={16} /> : <Copy size={16} />}
@@ -247,14 +247,54 @@ export const Generator = () => {
               </button>
             )}
           </div>
-          <div className="flex-1 bg-slate-50 border border-slate-100 rounded-xl p-4 overflow-y-auto">
+          
+          <div className="flex-1 bg-slate-50 border border-slate-100 rounded-xl p-4 overflow-y-auto space-y-6">
             {result ? (
-              <pre className="text-slate-800 whitespace-pre-wrap font-sans text-sm leading-relaxed">{result}</pre>
+              <>
+                {/* Section 1: WhatsApp Text */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
+                      <MessageCircle size={14} />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700">Для WhatsApp (Агенту)</span>
+                  </div>
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 text-sm leading-relaxed whitespace-pre-wrap text-slate-800">
+                    {result}
+                  </div>
+                </div>
+
+                {/* Section 2: Smart Link */}
+                {otprovinLink && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
+                        <Sparkles size={14} />
+                      </div>
+                      <span className="text-sm font-bold text-slate-700">Для Туриста (Smart Link)</span>
+                    </div>
+                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center justify-between gap-4">
+                      <div className="text-sm text-blue-900 font-medium truncate">
+                        {window.location.origin}/selection
+                      </div>
+                      <button 
+                        onClick={handleShare}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
+                      >
+                        Копировать ссылку
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2 ml-1">
+                      Отправьте эту ссылку клиенту. Там его ждет персональный ИИ-гид по этой подборке.
+                    </p>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm text-center px-8">
                 <Sparkles size={32} className="mb-3 opacity-20" />
-                <p>Здесь появится продающий текст.</p>
-                <p className="text-xs mt-2 opacity-60">Вставьте ссылку на Отправкин.ру, чтобы ИИ проанализировал подборку.</p>
+                <p>Здесь появится результат.</p>
+                <p className="text-xs mt-2 opacity-60">Вставьте ссылку на Отправкин.ру, чтобы получить текст и Smart-ссылку.</p>
               </div>
             )}
           </div>
