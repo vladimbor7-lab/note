@@ -3,6 +3,7 @@ import { Sidebar } from '../components/Sidebar';
 import { Generator } from '../components/Generator';
 import { Leads } from '../components/Leads';
 import { Tariffs } from '../components/Tariffs';
+import { BotSettings } from '../components/BotSettings';
 
 export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('generator');
@@ -15,12 +16,7 @@ export const Dashboard = () => {
         {activeTab === 'generator' && <Generator />}
         {activeTab === 'leads' && <Leads />}
         {activeTab === 'tariffs' && <Tariffs />}
-        {activeTab === 'settings' && (
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-black text-slate-900 mb-4">Настройки бота</h1>
-            <p className="text-slate-600">Здесь будут настройки интеграции с WhatsApp и CRM.</p>
-          </div>
-        )}
+        {activeTab === 'settings' && <BotSettings />}
       </main>
     </div>
   );
