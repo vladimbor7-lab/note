@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { generateTravelResponse } from '../services/gemini';
 
 export const LandingChat = () => {
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string, links?: {title: string, uri: string}[]}[]>([
@@ -26,37 +27,11 @@ export const LandingChat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: userMessage,
-          model: 'gemini' 
-        })
-      });
-
-      const data = await response.json();
+      const reply = await generateTravelResponse(userMessage);
       
-      if (data.error) {
-        // Fallback for demo if API fails (e.g. no keys)
-        console.warn("API Error, using fallback response:", data.error);
-        setTimeout(() => {
-           setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты на otpravkin.ru! 🌴 Например, Rixos Premium Saadiyat или Atlantis The Royal. Хотите узнать о них подробнее?' }]);
-           setIsLoading(false);
-        }, 1000);
-        return;
-      }
-
-      // Extract links from grounding metadata
-      const links = data.groundingMetadata?.groundingChunks
-        ?.map((chunk: any) => chunk.web)
-        .filter((web: any) => web && web.uri && web.uri.includes('otpravkin.ru'))
-        .map((web: any) => ({ title: web.title || 'Otpravkin', uri: web.uri }));
-
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: data.reply,
-        links: links && links.length > 0 ? links : undefined
+        content: reply
       }]);
     } catch (error) {
       console.error('Error:', error);

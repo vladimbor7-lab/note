@@ -1,38 +1,52 @@
 import { GoogleGenAI } from "@google/genai";
 
-let genAIClient: GoogleGenAI | null = null;
+const SYSTEM_INSTRUCTION = `Ты - ведущий эксперт-турагент сервиса Travel AI, интегрированного с базой данных otpravkin.ru. 
+Ваша главная задача: предоставлять пользователям ТОЛЬКО РЕАЛЬНЫЕ цены и ПРЯМЫЕ ссылки на туры с сайта otpravkin.ru.
 
-export const getGenAI = () => {
-  if (!genAIClient) {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("GEMINI_API_KEY is missing. Please add it to your environment variables.");
+ПРАВИЛА РАБОТЫ:
+1. ИНФОРМАЦИЯ: Ты должен стремиться предоставлять актуальную стоимость и наличие. Опирайся на данные с сайта otpravkin.ru.
+2. ЦЕНЫ: Всегда указывай стоимость тура (например, "от 145 000 руб. на двоих"). Никогда не выдумывай цены, если не уверен - говори "уточняйте на сайте".
+3. ССЫЛКИ: Для каждого упомянутого отеля ты ОБЯЗАН предоставить прямую ссылку на страницу этого отеля на сайте otpravkin.ru (формат: https://otpravkin.ru/hotels/название-отеля).
+4. СТИЛЬ: Общайся как живой человек, профессионально, но с энтузиазмом. Используй эмодзи.
+5. КОНТЕКСТ: Если пользователь прислал ссылку на otpravkin.ru, изучи её содержимое (оно передано тебе в тексте) и прокомментируй конкретные отели.
+
+Твоя цель - сделать так, чтобы клиент мог сразу перейти по ссылке и забронировать тур по указанной тобой цене.`;
+
+export async function generateTravelResponse(message: string) {
+  try {
+    // Extract URL from message if present
+    const urlMatch = message.match(/https?:\/\/[^\s]+/);
+    let enhancedMessage = message;
+    
+    if (urlMatch) {
+      const url = urlMatch[0];
+      try {
+        const fetchResponse = await fetch(`/api/fetch-url?url=${encodeURIComponent(url)}`);
+        if (fetchResponse.ok) {
+          const { content } = await fetchResponse.json();
+          if (content) {
+            enhancedMessage += `\n\n[System: The following content was extracted from the link: ${url}]\n${content}\n[End of link content]`;
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to fetch URL content:", err);
+      }
     }
-    genAIClient = new GoogleGenAI({ apiKey });
+
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: enhancedMessage,
+      config: {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        temperature: 0.7,
+        maxOutputTokens: 2048,
+      },
+    });
+
+    return response.text || '';
+  } catch (error: any) {
+    console.error('Gemini Service Error:', error);
+    throw error;
   }
-  return genAIClient;
-};
-
-export const generateTourPost = async (rawText: string, audience: string) => {
-  const ai = getGenAI();
-  const prompt = `Ты — топовый копирайтер для турагентств. Твоя задача: взять сухой технический текст от туроператора и превратить его в красивое, эмоциональное и продающее сообщение для отправки клиенту в WhatsApp.
-  
-  Целевая аудитория клиента: ${audience}. Адаптируй тон под них (например, для семей с детьми сделай акцент на детских клубах и питании, для молодежи — на тусовках и барах).
-  
-  Правила:
-  1. Используй уместное количество эмодзи.
-  2. Разбей текст на удобные абзацы.
-  3. Выдели жирным шрифтом (используй Markdown **) название отеля, цену и даты.
-  4. Добавь призыв к действию в конце (например, "Забронируем, пока есть места?").
-  5. Убери весь технический мусор (коды рейсов, аббревиатуры туроператоров типа SPO, DBL, RO), переведи это на человеческий язык.
-
-  Исходный текст от туроператора:
-  ${rawText}`;
-  
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: prompt,
-  });
-  
-  return response.text;
-};
+}

@@ -1,17 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI } from "@google/genai";
 import * as cheerio from 'cheerio';
 
 const app = express();
 const PORT = 3000;
 
 app.use(cors());
-app.use(express.json());
-
-// Initialize AI Clients
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Helper function to extract text from URL
 async function fetchUrlContent(url: string): Promise<string> {
@@ -44,61 +39,17 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.post('/api/chat', async (req, res) => {
+app.get('/api/fetch-url', async (req, res) => {
+  const { url } = req.query;
+  if (!url || typeof url !== 'string') {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+  
   try {
-    const { message, model = 'claude' } = req.body;
-    
-    // Extract URL from message if present (simple regex)
-    const urlMatch = message.match(/https?:\/\/[^\s]+/);
-    let enhancedMessage = message;
-    
-    if (urlMatch) {
-      const url = urlMatch[0];
-      console.log(`Fetching content for URL: ${url}`);
-      const urlContent = await fetchUrlContent(url);
-      if (urlContent) {
-        enhancedMessage += `\n\n[System: The following content was extracted from the link: ${url}]\n${urlContent}\n[End of link content]`;
-      }
-    }
-
-    const systemInstruction = `Ты - ведущий эксперт-турагент сервиса Travel AI, интегрированного с базой данных otpravkin.ru. 
-Ваша главная задача: предоставлять пользователям ТОЛЬКО РЕАЛЬНЫЕ цены и ПРЯМЫЕ ссылки на туры с сайта otpravkin.ru.
-
-ПРАВИЛА РАБОТЫ:
-1. ИНФОРМАЦИЯ: Ты должен стремиться предоставлять актуальную стоимость и наличие. Опирайся на данные с сайта otpravkin.ru.
-2. ЦЕНЫ: Всегда указывай стоимость тура (например, "от 145 000 руб. на двоих"). Никогда не выдумывай цены, если не уверен - говори "уточняйте на сайте".
-3. ССЫЛКИ: Для каждого упомянутого отеля ты ОБЯЗАН предоставить прямую ссылку на страницу этого отеля на сайте otpravkin.ru (формат: https://otpravkin.ru/hotels/название-отеля).
-4. СТИЛЬ: Общайся как живой человек, профессионально, но с энтузиазмом. Используй эмодзи.
-5. КОНТЕКСТ: Если пользователь прислал ссылку на otpravkin.ru, изучи её содержимое (оно передано тебе в тексте) и прокомментируй конкретные отели.
-
-Твоя цель - сделать так, чтобы клиент мог сразу перейти по ссылке и забронировать тур по указанной тобой цене.`;
-
-    // Use Gemini
-    console.log(`Using Google Gemini (Flash) for chat`);
-    
-    try {
-      const response = await genAI.models.generateContent({
-        model: "gemini-1.5-flash-latest",
-        contents: enhancedMessage,
-        config: {
-          systemInstruction: systemInstruction,
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-        },
-      });
-
-      const text = response.text || '';
-      return res.json({ reply: text });
-    } catch (e: any) {
-      console.error('Gemini API Error:', e.message);
-      return res.status(500).json({ 
-        error: `AI Error: Gemini failed (${e.message}).` 
-      });
-    }
-
-  } catch (error: any) {
-    console.error('AI Error:', error);
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
+    const content = await fetchUrlContent(url);
+    res.json({ content });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch URL' });
   }
 });
 

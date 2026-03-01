@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { generateTravelResponse } from '../services/gemini';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -66,37 +67,11 @@ export const TouristChat = () => {
         Отвечай кратко, по делу. Обязательно давай ссылки на otpravkin.ru.
       `;
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: prompt, 
-          model: 'claude' 
-        })
-      });
-
-      const data = await response.json();
+      const reply = await generateTravelResponse(prompt);
       
-      if (data.error) {
-         console.warn("API Error, using fallback response:", data.error);
-         // Fallback for demo
-         setTimeout(() => {
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты на otpravkin.ru! 🌴 Скажите, какой у вас бюджет?' }]);
-            setIsLoading(false);
-         }, 1000);
-         return;
-      }
-
-      // Extract links from grounding metadata
-      const links = data.groundingMetadata?.groundingChunks
-        ?.map((chunk: any) => chunk.web)
-        .filter((web: any) => web && web.uri && web.uri.includes('otpravkin.ru'))
-        .map((web: any) => ({ title: web.title || 'Подробнее на Otpravkin', uri: web.uri }));
-
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: data.reply,
-        links: links && links.length > 0 ? links : undefined
+        content: reply
       }]);
     } catch (error) {
       console.error('Error:', error);

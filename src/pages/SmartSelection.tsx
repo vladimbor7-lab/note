@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MessageCircle, Phone, Star, MapPin, ShieldCheck, AlertTriangle, Send } from 'lucide-react';
+import { generateTravelResponse } from '../services/gemini';
 
 export const SmartSelection = () => {
   const [messages, setMessages] = useState([
@@ -22,19 +23,13 @@ export const SmartSelection = () => {
       const tone = settings.tone || 'friendly';
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: `Ты - ИИ-помощник турагента для туриста. Контекст: Турист смотрит подборку (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос туриста: ${input}. 
-          Настройки тона: ${tone}. Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}.
-          Отвечай кратко, честно, продавай ценность. В конце добавь дисклеймер.`, 
-          model: 'claude' 
-        })
-      });
-      const data = await response.json();
+      const prompt = `Ты - ИИ-помощник турагента для туриста. Контекст: Турист смотрит подборку (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос туриста: ${input}. 
+      Настройки тона: ${tone}. Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}.
+      Отвечай кратко, честно, продавай ценность. В конце добавь дисклеймер.`;
+
+      const reply = await generateTravelResponse(prompt);
       
-      setMessages(prev => [...prev, { role: 'ai', content: data.reply || 'Извините, я задумался. Спросите еще раз.' }]);
+      setMessages(prev => [...prev, { role: 'ai', content: reply || 'Извините, я задумался. Спросите еще раз.' }]);
     } catch (e) {
       console.error(e);
     } finally {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Copy, Check, Eye, EyeOff, MessageCircle } from 'lucide-react';
+import { generateTravelResponse } from '../services/gemini';
 
 export const Generator = () => {
   const [rawText, setRawText] = useState('');
@@ -80,16 +81,8 @@ export const Generator = () => {
         `;
       }
 
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: prompt, model: 'gemini' })
-      });
-
-      const data = await response.json();
-      if (data.error) throw new Error(data.error);
-      
-      setResult(data.reply || '');
+      const reply = await generateTravelResponse(prompt);
+      setResult(reply);
     } catch (e) {
       console.error(e);
       setResult('Ошибка генерации. Проверьте API ключ или попробуйте позже.');
