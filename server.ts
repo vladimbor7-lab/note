@@ -1,8 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer as createViteServer } from 'vite';
-import Anthropic from '@anthropic-ai/sdk';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI } from "@google/genai";
 import * as cheerio from 'cheerio';
 
 const app = express();
@@ -12,10 +11,6 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize AI Clients
-const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_API_KEY,
-});
-
 const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // Helper function to extract text from URL
@@ -66,56 +61,40 @@ app.post('/api/chat', async (req, res) => {
       }
     }
 
-    if (model === 'claude' && process.env.CLAUDE_API_KEY) {
-      try {
-        const response = await anthropic.messages.create({
-          model: "claude-3-5-sonnet-20240620",
-          max_tokens: 1024,
-          messages: [{ role: "user", content: enhancedMessage }],
-        });
+    const systemInstruction = `Ты - ведущий эксперт-турагент сервиса Travel AI, интегрированного с базой данных otpravkin.ru. 
+Ваша главная задача: предоставлять пользователям ТОЛЬКО РЕАЛЬНЫЕ цены и ПРЯМЫЕ ссылки на туры с сайта otpravkin.ru.
 
-        // @ts-ignore
-        const text = response.content[0].text;
-        return res.json({ reply: text });
-      } catch (e) {
-        console.error('Claude API failed, falling back to Gemini', e);
-        // Fallback to Gemini below
-      }
-    }
+ПРАВИЛА РАБОТЫ:
+1. ИНФОРМАЦИЯ: Ты должен стремиться предоставлять актуальную стоимость и наличие. Опирайся на данные с сайта otpravkin.ru.
+2. ЦЕНЫ: Всегда указывай стоимость тура (например, "от 145 000 руб. на двоих"). Никогда не выдумывай цены, если не уверен - говори "уточняйте на сайте".
+3. ССЫЛКИ: Для каждого упомянутого отеля ты ОБЯЗАН предоставить прямую ссылку на страницу этого отеля на сайте otpravkin.ru (формат: https://otpravkin.ru/hotels/название-отеля).
+4. СТИЛЬ: Общайся как живой человек, профессионально, но с энтузиазмом. Используй эмодзи.
+5. КОНТЕКСТ: Если пользователь прислал ссылку на otpravkin.ru, изучи её содержимое (оно передано тебе в тексте) и прокомментируй конкретные отели.
 
-    // Gemini Handler
-    let apiKey = process.env.API_KEY; // Try the platform-injected key first
-    
-    // If API_KEY is missing or doesn't look like a Google key, try others
-    if (!apiKey || !apiKey.startsWith('AIza')) {
-       apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    }
-    
-    if (!apiKey) {
-      console.error("No API key found for Gemini");
-      return res.status(500).json({ error: 'AI API keys not configured' });
-    }
+Твоя цель - сделать так, чтобы клиент мог сразу перейти по ссылке и забронировать тур по указанной тобой цене.`;
 
-    apiKey = apiKey.trim();
-    console.log(`Using API Key: Length=${apiKey.length}, StartsWith=${apiKey.substring(0, 4)}...`);
+    // Use Gemini
+    console.log(`Using Google Gemini (Flash) for chat`);
     
-    if (!apiKey.startsWith('AIza')) {
-       console.warn("Warning: API Key does not start with 'AIza'. It might be invalid.");
-    }
-    
-    // Re-initialize with the found key if needed, or rely on the global instance if it was init correctly.
-    // Since we initialized genAI globally with process.env.GEMINI_API_KEY, we might need to create a new instance if that was undefined.
-    const activeGenAI = new GoogleGenAI({ apiKey });
+    try {
+      const response = await genAI.models.generateContent({
+        model: "gemini-1.5-flash-latest",
+        contents: enhancedMessage,
+        config: {
+          systemInstruction: systemInstruction,
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
+      });
 
-    const response = await activeGenAI.models.generateContent({
-      model: "gemini-1.5-flash",
-      contents: enhancedMessage,
-      config: {
-        systemInstruction: "Ты - профессиональный и дружелюбный турагент. Твоя задача - помогать пользователям подбирать туры, рассказывать об отелях и странах. Отвечай кратко, эмоционально, используй эмодзи. Если пользователь спрашивает о конкретном направлении (например, ОАЭ), предлагай популярные курорты и отели. Не говори, что ты ИИ, веди себя как живой эксперт.",
-      }
-    });
-    
-    res.json({ reply: response.text });
+      const text = response.text || '';
+      return res.json({ reply: text });
+    } catch (e: any) {
+      console.error('Gemini API Error:', e.message);
+      return res.status(500).json({ 
+        error: `AI Error: Gemini failed (${e.message}).` 
+      });
+    }
 
   } catch (error: any) {
     console.error('AI Error:', error);

@@ -5,12 +5,13 @@ import { useNavigate } from 'react-router-dom';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  links?: { title: string; uri: string }[];
 }
 
 export const TouristChat = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Привет! Я ваш персональный ИИ-турагент. Куда планируете полететь? 🌍' }
+    { role: 'assistant', content: 'Привет! Я ваш персональный ИИ-турагент, работающий с базой otpravkin.ru. Куда планируете полететь? 🌍' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +49,7 @@ export const TouristChat = () => {
       // Get settings
       const savedSettings = localStorage.getItem('botSettings');
       const settings = savedSettings ? JSON.parse(savedSettings) : {};
-      const systemPrompt = settings.systemPrompt || 'Ты - дружелюбный ИИ-турагент. Твоя цель - помочь туристу выбрать тур.';
+      const systemPrompt = settings.systemPrompt || 'Ты - дружелюбный ИИ-турагент, работающий на базе данных сайта otpravkin.ru. Твоя цель - помочь туристу выбрать тур, используя ТОЛЬКО актуальные данные, цены и ссылки с сайта otpravkin.ru.';
       const tone = settings.tone || 'friendly';
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
@@ -62,7 +63,7 @@ export const TouristChat = () => {
         ${messages.map(m => `${m.role === 'user' ? 'Турист' : 'Ассистент'}: ${m.content}`).join('\n')}
         Турист: ${userMessage}
         
-        Отвечай кратко, по делу.
+        Отвечай кратко, по делу. Обязательно давай ссылки на otpravkin.ru.
       `;
 
       const response = await fetch('/api/chat', {
@@ -70,7 +71,7 @@ export const TouristChat = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           message: prompt, 
-          model: 'gemini' 
+          model: 'claude' 
         })
       });
 
@@ -80,13 +81,23 @@ export const TouristChat = () => {
          console.warn("API Error, using fallback response:", data.error);
          // Fallback for demo
          setTimeout(() => {
-            setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты! 🌴 Скажите, какой у вас бюджет?' }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты на otpravkin.ru! 🌴 Скажите, какой у вас бюджет?' }]);
             setIsLoading(false);
          }, 1000);
          return;
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+      // Extract links from grounding metadata
+      const links = data.groundingMetadata?.groundingChunks
+        ?.map((chunk: any) => chunk.web)
+        .filter((web: any) => web && web.uri && web.uri.includes('otpravkin.ru'))
+        .map((web: any) => ({ title: web.title || 'Подробнее на Otpravkin', uri: web.uri }));
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.reply,
+        links: links && links.length > 0 ? links : undefined
+      }]);
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: 'Извините, произошла ошибка. Попробуйте еще раз.' }]);
@@ -103,7 +114,7 @@ export const TouristChat = () => {
           <ArrowLeft size={24} />
         </button>
         <div>
-          <h1 className="font-bold text-slate-900">ИИ-Турагент</h1>
+          <h1 className="font-bold text-slate-900">ИИ-Турагент (Otpravkin.ru)</h1>
           <p className="text-xs text-slate-500">Онлайн • Отвечает мгновенно</p>
         </div>
       </div>
@@ -115,12 +126,30 @@ export const TouristChat = () => {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-emerald-500 text-white'}`}>
               {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
             </div>
-            <div className={`max-w-[80%] rounded-2xl p-4 text-sm leading-relaxed ${
-              msg.role === 'user' 
-                ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm'
-            }`}>
-              {msg.content}
+            <div className={`max-w-[80%] flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className={`rounded-2xl p-4 text-sm leading-relaxed ${
+                msg.role === 'user' 
+                  ? 'bg-blue-600 text-white rounded-tr-none' 
+                  : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm'
+              }`}>
+                {msg.content}
+              </div>
+              
+              {msg.links && msg.links.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {msg.links.map((link, lIdx) => (
+                    <a 
+                      key={lIdx} 
+                      href={link.uri} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors flex items-center gap-1"
+                    >
+                      <span>🔗</span> {link.title}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}

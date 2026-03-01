@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Sparkles } from 'lucide-react';
 
 export const LandingChat = () => {
-  const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string}[]>([
-    { role: 'assistant', content: 'Привет! 👋 Я ваш персональный ИИ-турагент. Куда планируете полететь?' }
+  const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string, links?: {title: string, uri: string}[]}[]>([
+    { role: 'assistant', content: 'Привет! 👋 Я ваш персональный ИИ-турагент, работающий с базой otpravkin.ru. Куда планируете полететь?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,13 +41,23 @@ export const LandingChat = () => {
         // Fallback for demo if API fails (e.g. no keys)
         console.warn("API Error, using fallback response:", data.error);
         setTimeout(() => {
-           setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты в ОАЭ! 🇦🇪 Например, Rixos Premium Saadiyat или Atlantis The Royal. Хотите узнать о них подробнее?' }]);
+           setMessages(prev => [...prev, { role: 'assistant', content: 'Я пока работаю в демо-режиме (нет API ключей), но я бы предложил вам отличные варианты на otpravkin.ru! 🌴 Например, Rixos Premium Saadiyat или Atlantis The Royal. Хотите узнать о них подробнее?' }]);
            setIsLoading(false);
         }, 1000);
         return;
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+      // Extract links from grounding metadata
+      const links = data.groundingMetadata?.groundingChunks
+        ?.map((chunk: any) => chunk.web)
+        .filter((web: any) => web && web.uri && web.uri.includes('otpravkin.ru'))
+        .map((web: any) => ({ title: web.title || 'Otpravkin', uri: web.uri }));
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.reply,
+        links: links && links.length > 0 ? links : undefined
+      }]);
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { role: 'assistant', content: 'Простите, что-то пошло не так. Попробуйте еще раз.' }]);
@@ -68,7 +78,7 @@ export const LandingChat = () => {
           <div className="font-bold text-white">AIAIAI Assistant</div>
           <div className="text-xs text-slate-400 flex items-center gap-1">
             <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-            Online • Claude 3.5
+            Online • Gemini 1.5 Flash
           </div>
         </div>
       </div>
@@ -80,12 +90,29 @@ export const LandingChat = () => {
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-blue-600'}`}>
               {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
             </div>
-            <div className={`max-w-[85%] rounded-2xl p-3 text-sm leading-relaxed shadow-sm ${
-              msg.role === 'user' 
-                ? 'bg-blue-600 text-white rounded-tr-none' 
-                : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
-            }`}>
-              {msg.content}
+            <div className={`max-w-[85%] flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+              <div className={`rounded-2xl p-3 text-sm leading-relaxed shadow-sm ${
+                msg.role === 'user' 
+                  ? 'bg-blue-600 text-white rounded-tr-none' 
+                  : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
+              }`}>
+                {msg.content}
+              </div>
+              {msg.links && msg.links.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {msg.links.map((link, lIdx) => (
+                    <a 
+                      key={lIdx} 
+                      href={link.uri} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[10px] bg-white text-blue-600 px-2 py-1 rounded-full border border-slate-200 hover:border-blue-300 transition-colors"
+                    >
+                      🔗 {link.title}
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -126,7 +153,7 @@ export const LandingChat = () => {
         </div>
         <div className="text-center mt-2">
            <span className="text-[10px] text-slate-400 flex items-center justify-center gap-1">
-             <Sparkles size={10} /> Powered by Claude 3.5 Sonnet
+             <Sparkles size={10} /> Powered by Gemini 1.5 Flash
            </span>
         </div>
       </div>

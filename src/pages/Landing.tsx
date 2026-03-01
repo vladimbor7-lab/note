@@ -56,7 +56,7 @@ export const Landing = () => {
             <div className="flex items-center gap-8 text-sm font-bold text-slate-500">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-green-500 rounded-full"></div>
-                Claude 3.5
+                Gemini 1.5
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
@@ -169,7 +169,7 @@ export const Landing = () => {
               <div className="text-4xl font-black text-slate-900 mb-6">0 ₽</div>
               <div className="space-y-3 mb-8">
                 <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> 2 ссылки из Отправкина/день</div>
-                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Базовая модель</div>
+                <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Gemini 1.5 Flash</div>
                 <div className="flex items-center gap-2 text-sm text-slate-700"><Check size={16} className="text-green-500" /> Тест ИИ-упаковки</div>
               </div>
               <button onClick={() => navigate('/dashboard')} className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold py-3 rounded-xl transition-colors">Попробовать</button>

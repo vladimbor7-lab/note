@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, Copy, Check, Eye, EyeOff } from 'lucide-react';
+import { Sparkles, Copy, Check, Eye, EyeOff, MessageCircle } from 'lucide-react';
 
 export const Generator = () => {
   const [rawText, setRawText] = useState('');
-  const [otprovinLink, setOtprovinLink] = useState('');
+  const [otpravkinLink, setOtpravkinLink] = useState('');
   const [blacklist, setBlacklist] = useState('');
   const [audience, setAudience] = useState('Семья с детьми');
   const [profile, setProfile] = useState('Обычный турист');
@@ -13,7 +13,7 @@ export const Generator = () => {
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async (mode: 'default' | 'objection' | 'specs' = 'default') => {
-    if (!rawText && !otprovinLink && mode === 'default') return;
+    if (!rawText && !otpravkinLink && mode === 'default') return;
     setIsGenerating(true);
     try {
       let prompt = '';
@@ -21,10 +21,10 @@ export const Generator = () => {
       if (mode === 'objection') {
         prompt = `
           Ты - опытный турагент. Клиент возражает: "Я видел этот отель дешевле" или сомневается в цене.
-          Твоя задача: Мягко и экспертно отработать возражение.
+          Твоя задача: Мягко и экспертно отработать возражение, используя данные с otpravkin.ru.
           
           Входные данные:
-          - Отель/Контекст: ${rawText || otprovinLink || 'Не указан'}
+          - Отель/Контекст: ${rawText || otpravkinLink || 'Не указан'}
           - Психотип клиента: ${profile}
 
           Инструкция:
@@ -35,13 +35,13 @@ export const Generator = () => {
         `;
       } else if (mode === 'specs') {
         prompt = `
-          Ты - аналитик отелей. Твоя задача: Вытащить сухие факты для агента (шпаргалка).
+          Ты - аналитик отелей. Твоя задача: Вытащить сухие факты для агента (шпаргалка) с сайта otpravkin.ru.
           
           Входные данные:
-          - Ссылка/Текст: ${otprovinLink || rawText}
+          - Ссылка/Текст: ${otpravkinLink || rawText}
           
           Инструкция:
-          1. Если есть ссылка, проанализируй её содержимое.
+          1. Если есть ссылка, проанализируй её содержимое (используй Google Search для otpravkin.ru).
           2. Выдай краткий список фактов (bullet points):
              - 📅 Год постройки / Реновации
              - 🏖 Тип пляжа (песок/галька, вход)
@@ -54,29 +54,29 @@ export const Generator = () => {
       } else {
         // Default mode (Post generation)
         prompt = `
-          Ты - профессиональный турагент, использующий модель Claude 3.5 Sonnet.
+          Ты - профессиональный турагент, работающий на базе данных otpravkin.ru.
           Твоя задача - создать продающий, эмоциональный пост для WhatsApp на основе предоставленных данных.
           
           Входные данные:
           - Описание/Запрос: ${rawText}
-          - Ссылка на подборку (Отправкин.ру): ${otprovinLink || 'Не указана'}
+          - Ссылка на подборку (Отправкин.ру): ${otpravkinLink || 'Не указана'}
           - Аудитория: ${audience}
           - Психотип клиента: ${profile}
           - Стелс-режим: ${stealthMode ? 'ВКЛЮЧЕН (Не называй отели! Описывай их так, чтобы клиент влюбился, но не мог найти сам. Используй фразы "Этот отель...", "Роскошная пятерка в Белеке..." и т.д.)' : 'ВЫКЛЮЧЕН (Называй отели открыто)'}
           - Черный список отелей (НЕ ПРЕДЛАГАТЬ): ${blacklist || 'Нет'}
 
           Инструкция:
-          1. Если есть ссылка на Отправкин.ру, проанализируй её (представь, что ты видишь отели по ссылке) и выдели их концепции.
+          1. Если есть ссылка на Отправкин.ру, проанализируй её (используй Google Search для поиска актуальных цен и деталей на otpravkin.ru) и выдели их концепции.
              - Если ссылка на подборку из нескольких отелей, напиши: "Я проанализировал вашу подборку. Отель №1 идеален для..., а №3 сейчас на акции".
-             - Сгенерируй "Текст-мост": "Мария (или имя клиента), здравствуйте! Я подготовил для вас варианты... Самый интересный — [Название/Описание], там... Посмотрите детали по ссылке: ${otprovinLink}".
-          2. Структурируй текст: Заголовок, Главные фишки, Для кого подходит, Цена (если есть), Призыв к действию.
+             - Сгенерируй "Текст-мост": "Мария (или имя клиента), здравствуйте! Я подготовил для вас варианты... Самый интересный — [Название/Описание], там... Посмотрите детали по ссылке: ${otpravkinLink}".
+          2. Структурируй текст: Заголовок, Главные фишки, Для кого подходит, Цена (ОБЯЗАТЕЛЬНО РЕАЛЬНАЯ С OTPRAVKIN.RU), Призыв к действию.
           3. Используй emoji, но умеренно.
           4. Учитывай психотип:
              - "Мамочка-паникер": упор на безопасность, питание, врачей.
              - "Любитель лакшери": упор на бренды, сервис, эксклюзив.
              - "Экономный скептик": упор на выгоду и честные отзывы.
           5. В конце текста ОБЯЗАТЕЛЬНО добавь подпись мелким шрифтом или курсивом: 
-             "🤖 Анализ проведен нейросетью AIAIAI на базе отзывов 2024-2025 гг."
+             "🤖 Анализ проведен нейросетью AIAIAI на базе реальных данных otpravkin.ru"
         `;
       }
 
@@ -114,7 +114,7 @@ export const Generator = () => {
     <div className="max-w-6xl mx-auto">
       <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">ИИ-Копирайтер (Claude 3.5)</h1>
+          <h1 className="text-3xl font-black text-slate-900 mb-2">ИИ-Копирайтер (Gemini 1.5)</h1>
           <p className="text-slate-600">Вставьте ссылку на Отправкин.ру или описание отеля. Нейросеть сделает продающий пост.</p>
         </div>
         <button 
@@ -146,7 +146,7 @@ export const Generator = () => {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Психотип (Claude)</label>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Психотип (Gemini)</label>
               <select 
                 value={profile}
                 onChange={(e) => setProfile(e.target.value)}
@@ -165,9 +165,9 @@ export const Generator = () => {
             <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ссылка на подборку (Отправкин.ру)</label>
             <input 
               type="text"
-              value={otprovinLink}
-              onChange={(e) => setOtprovinLink(e.target.value)}
-              placeholder="https://otprovin.ru/..."
+              value={otpravkinLink}
+              onChange={(e) => setOtpravkinLink(e.target.value)}
+              placeholder="https://otpravkin.ru/..."
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-700 transition-colors text-sm"
             />
           </div>
@@ -211,10 +211,10 @@ export const Generator = () => {
           <div className="grid grid-cols-1 gap-3">
             <button 
               onClick={() => handleGenerate('default')}
-              disabled={isGenerating || (!rawText && !otprovinLink)}
+              disabled={isGenerating || (!rawText && !otpravkinLink)}
               className="w-full bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white py-4 rounded-xl font-black flex items-center justify-center gap-2 transition-all shadow-sm"
             >
-              {isGenerating ? <span className="animate-pulse">Claude пишет пост...</span> : <><Sparkles size={18} /> Сгенерировать пост</>}
+              {isGenerating ? <span className="animate-pulse">Gemini пишет пост...</span> : <><Sparkles size={18} /> Сгенерировать пост</>}
             </button>
             
             <div className="grid grid-cols-2 gap-3">
@@ -227,7 +227,7 @@ export const Generator = () => {
               </button>
               <button 
                 onClick={() => handleGenerate('specs')}
-                disabled={isGenerating || !otprovinLink}
+                disabled={isGenerating || !otpravkinLink}
                 className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 py-3 rounded-xl font-bold text-sm transition-colors"
               >
                 📋 Спецификация отеля
@@ -265,7 +265,7 @@ export const Generator = () => {
                 </div>
 
                 {/* Section 2: Smart Link */}
-                {otprovinLink && (
+                {otpravkinLink && (
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
