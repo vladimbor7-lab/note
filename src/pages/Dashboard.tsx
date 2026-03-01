@@ -4,10 +4,9 @@ import { Generator } from '../components/Generator';
 import { Leads } from '../components/Leads';
 import { Tariffs } from '../components/Tariffs';
 import { BotSettings } from '../components/BotSettings';
-import { SmartContext } from '../components/SmartContext';
 
 export const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState('smart_context');
+  const [activeTab, setActiveTab] = useState('generator');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex font-sans">
@@ -15,7 +14,6 @@ export const Dashboard = () => {
       
       <main className="flex-1 p-10 overflow-y-auto">
         {activeTab === 'generator' && <Generator />}
-        {activeTab === 'smart_context' && <SmartContext />}
         {activeTab === 'leads' && <Leads />}
         {activeTab === 'tariffs' && <Tariffs />}
         {activeTab === 'settings' && <BotSettings />}

@@ -1,5 +1,5 @@
 {
-  "name": "BrainFlow AI: Second Brain",
-  "description": "Первый российский Second Brain с ИИ. Локальное хранение, умная структура, авто-тегирование и голосовой ввод.",
-  "requestFramePermissions": ["microphone"]
+  "name": "Travel AI: Платформа автоматизации для турагентств",
+  "description": "Универсальный ИИ-ассистент для туристического бизнеса: автоматический подбор туров через Sletat.ru, обработка заявок 24/7, интеграция с CRM и Telegram, умные ответы на вопросы клиентов.",
+  "requestFramePermissions": []
 }

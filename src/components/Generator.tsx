@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Copy, Check, Eye, EyeOff, MessageCircle } from 'lucide-react';
+import { Sparkles, Copy, Check, Eye, EyeOff } from 'lucide-react';
 
 export const Generator = () => {
   const [rawText, setRawText] = useState('');
