@@ -1,5 +1,5 @@
 {
-  "name": "Second Brain AI: Ваш умный помощник",
-  "description": "Персональная база знаний с ИИ-структурированием, авто-тегами и локальным хранением данных. Превращает хаос мыслей в порядок.",
-  "requestFramePermissions": []
+  "name": "BrainFlow AI: Second Brain",
+  "description": "Первый российский Second Brain с ИИ. Локальное хранение, умная структура, авто-тегирование и голосовой ввод.",
+  "requestFramePermissions": ["microphone"]
 }
