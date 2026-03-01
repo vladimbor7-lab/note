@@ -16,10 +16,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => 
 
   return (
     <div className="w-64 bg-white border-r border-slate-200 h-screen p-6 flex flex-col shadow-sm">
-      <div className="flex items-center gap-2 mb-12">
+      <a href="/" className="flex items-center gap-2 mb-12 hover:opacity-80 transition-opacity">
         <div className="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center text-white font-black">T</div>
         <span className="text-xl font-black text-slate-900 tracking-tight">TRAVEL<span className="text-blue-700">AI</span></span>
-      </div>
+      </a>
       
       <nav className="flex-1 space-y-2">
         {menu.map(item => (
