@@ -4,10 +4,11 @@ import { generateTravelResponse } from '../services/gemini';
 
 export const LandingChat = () => {
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string, links?: {title: string, uri: string}[]}[]>([
-    { role: 'assistant', content: 'Привет! 👋 Я ваш персональный ИИ-турагент, работающий с базой otpravkin.ru. Куда планируете полететь?' }
+    { role: 'assistant', content: 'Привет! 👋 Я твой ИИ-помощник по турам. Работаю с базой sletat.ru. Куда хочешь махнуть?\n\n(Демо: цены примерные, ссылок нет)' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [budget, setBudget] = useState(200000);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -27,7 +28,8 @@ export const LandingChat = () => {
     setIsLoading(true);
 
     try {
-      const reply = await generateTravelResponse(userMessage);
+      const enhancedMessage = `[Бюджет: до ${budget} руб] ${userMessage}`;
+      const reply = await generateTravelResponse(enhancedMessage);
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
@@ -56,6 +58,10 @@ export const LandingChat = () => {
             Online • Gemini 1.5 Flash
           </div>
         </div>
+      </div>
+
+      <div className="bg-amber-50 border-b border-amber-100 px-4 py-1.5 text-[10px] text-amber-700 text-center italic">
+        Демонстрация ИИ-чата. Данные о вылетах и ценах не являются актуальными.
       </div>
 
       {/* Messages Area */}
@@ -107,7 +113,16 @@ export const LandingChat = () => {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-white border-t border-slate-100">
+      <div className="p-4 bg-white border-t border-slate-100 space-y-3">
+        <div className="flex items-center gap-3 px-1">
+          <span className="text-[10px] font-bold text-slate-400 uppercase whitespace-nowrap">Бюджет: {budget/1000}к</span>
+          <input 
+            type="range" min="30000" max="1000000" step="10000"
+            value={budget}
+            onChange={(e) => setBudget(parseInt(e.target.value))}
+            className="flex-1 h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+          />
+        </div>
         <div className="relative">
           <input
             type="text"

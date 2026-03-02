@@ -4,10 +4,15 @@ import { generateTravelResponse } from '../services/gemini';
 
 export const SmartSelection = () => {
   const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Здравствуйте! Ваш агент Мария подготовила для вас эту подборку. Я изучил все варианты: Rixos идеален для спокойствия, а Alva Donna — для детей. Что вам важнее?' }
+    { role: 'ai', content: 'Привет! 👋 Я Мария, твой агент. Глянула подборку (база sletat.ru): Rixos — это про релакс, а Alva Donna — для детей. Что тебе ближе?\n\n(Демо: цены примерные, ссылок нет)' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [filters, setFilters] = useState({
+    budget: 300000,
+    nights: 7,
+    meals: 'AI'
+  });
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -23,9 +28,10 @@ export const SmartSelection = () => {
       const tone = settings.tone || 'friendly';
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
-      const prompt = `Ты - ИИ-помощник турагента для туриста. Контекст: Турист смотрит подборку (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос туриста: ${input}. 
-      Настройки тона: ${tone}. Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}.
-      Отвечай кратко, честно, продавай ценность. В конце добавь дисклеймер.`;
+      const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). Контекст: Турист смотрит (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос: ${input}. 
+      Тон: ${tone}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}.
+      ТЕКУЩИЕ ФИЛЬТРЫ: Бюджет ${filters.budget}₽, ${filters.nights}н, Питание ${filters.meals}.
+      Пиши максимально кратко, как в чате. Без лишних вступлений. В конце напомни про демо-режим, примерные цены и отсутствие ссылок.`;
 
       const reply = await generateTravelResponse(prompt);
       
@@ -40,6 +46,9 @@ export const SmartSelection = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* WHITE LABEL HEADER */}
+      <div className="bg-amber-50 border-b border-amber-100 py-1 text-center text-[10px] text-amber-600">
+        Это демонстрационная страница. Цены и наличие мест в отелях приведены для примера.
+      </div>
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
@@ -151,12 +160,41 @@ export const SmartSelection = () => {
         {/* RIGHT: AI CONCIERGE */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 sticky top-24 h-[600px] flex flex-col">
-            <div className="p-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl">
-              <div className="font-bold text-slate-900 flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                Персональный ИИ-гид
+            <div className="p-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="font-bold text-slate-900 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  Персональный ИИ-гид
+                </div>
+                <div className="text-[10px] text-slate-400">Sletat.ru</div>
               </div>
-              <div className="text-xs text-slate-500 mt-1">Знает всё про эти отели. Спросите про пляж, еду или погоду.</div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase">
+                    <span>Бюджет</span>
+                    <span>{filters.budget/1000}к</span>
+                  </div>
+                  <input 
+                    type="range" min="50000" max="1000000" step="10000"
+                    value={filters.budget}
+                    onChange={(e) => setFilters({...filters, budget: parseInt(e.target.value)})}
+                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase">
+                    <span>Ночей</span>
+                    <span>{filters.nights}</span>
+                  </div>
+                  <input 
+                    type="range" min="1" max="21"
+                    value={filters.nights}
+                    onChange={(e) => setFilters({...filters, nights: parseInt(e.target.value)})}
+                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                </div>
+              </div>
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

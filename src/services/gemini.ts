@@ -1,19 +1,27 @@
 import { GoogleGenAI } from "@google/genai";
 
-const SYSTEM_INSTRUCTION = `Ты - ведущий эксперт-турагент сервиса Travel AI, интегрированного с базой данных otpravkin.ru. 
-Ваша главная задача: предоставлять пользователям ТОЛЬКО РЕАЛЬНЫЕ цены и ПРЯМЫЕ ссылки на туры с сайта otpravkin.ru.
+const SYSTEM_INSTRUCTION = `Ты - живой и общительный ИИ-турагент Travel AI (база sletat.ru). 
 
-ПРАВИЛА РАБОТЫ:
-1. ИНФОРМАЦИЯ: Ты должен стремиться предоставлять актуальную стоимость и наличие. Опирайся на данные с сайта otpravkin.ru.
-2. ЦЕНЫ: Всегда указывай стоимость тура (например, "от 145 000 руб. на двоих"). Никогда не выдумывай цены, если не уверен - говори "уточняйте на сайте".
-3. ССЫЛКИ: Для каждого упомянутого отеля ты ОБЯЗАН предоставить прямую ссылку на страницу этого отеля на сайте otpravkin.ru (формат: https://otpravkin.ru/hotels/название-отеля).
-4. СТИЛЬ: Общайся как живой человек, профессионально, но с энтузиазмом. Используй эмодзи.
-5. КОНТЕКСТ: Если пользователь прислал ссылку на otpravkin.ru, изучи её содержимое (оно передано тебе в тексте) и прокомментируй конкретные отели.
+ОБЯЗАТЕЛЬНО: 
+1. В каждом сообщении напоминай, что это ДЕМО, цены примерные и ссылок нет.
+2. Твоя главная задача - подбирать отели, опираясь на базу sletat.ru и ТЕКУЩИЕ ФИЛЬТРЫ пользователя (бюджет, ночи, питание и т.д.), если они переданы в контексте.
 
-Твоя цель - сделать так, чтобы клиент мог сразу перейти по ссылке и забронировать тур по указанной тобой цене.`;
+ПРАВИЛА ОБЩЕНИЯ:
+1. ПИШИ КРАТКО: Как в мессенджере.
+2. БУДЬ ЧЕЛОВЕКОМ: Без официоза.
+3. ЦЕНЫ: Только примерные.
+4. ССЫЛКИ: Не давай никаких ссылок.
+5. СУТЬ: Сразу к делу. Если есть фильтры — используй их как жесткие рамки.`;
 
-export async function generateTravelResponse(message: string) {
+export async function generateTravelResponse(message: string, isChat: boolean = true) {
   try {
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    
+    let finalSystemInstruction = SYSTEM_INSTRUCTION;
+    if (!isChat) {
+      finalSystemInstruction = `Ты - профессиональный турагент и SMM-менеджер. Твоя задача - создавать качественный контент для продвижения туров. Опирайся на данные sletat.ru.`;
+    }
+
     // Extract URL from message if present
     const urlMatch = message.match(/https?:\/\/[^\s]+/);
     let enhancedMessage = message;
@@ -33,14 +41,14 @@ export async function generateTravelResponse(message: string) {
       }
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: enhancedMessage,
       config: {
-        systemInstruction: SYSTEM_INSTRUCTION,
+        systemInstruction: finalSystemInstruction,
         temperature: 0.7,
         maxOutputTokens: 2048,
+        tools: [{ googleSearch: {} }],
       },
     });
 

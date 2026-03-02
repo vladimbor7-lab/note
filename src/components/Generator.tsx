@@ -81,7 +81,7 @@ export const Generator = () => {
         `;
       }
 
-      const reply = await generateTravelResponse(prompt);
+      const reply = await generateTravelResponse(prompt, false);
       setResult(reply);
     } catch (e) {
       console.error(e);
