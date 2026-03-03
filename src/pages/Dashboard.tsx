@@ -4,6 +4,7 @@ import { Generator } from '../components/Generator';
 import { Leads } from '../components/Leads';
 import { Tariffs } from '../components/Tariffs';
 import { BotSettings } from '../components/BotSettings';
+import { SmartLink } from '../components/SmartLink';
 
 export const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('generator');
@@ -17,6 +18,7 @@ export const Dashboard = () => {
         {activeTab === 'leads' && <Leads />}
         {activeTab === 'tariffs' && <Tariffs />}
         {activeTab === 'settings' && <BotSettings />}
+        {activeTab === 'smartlink' && <SmartLink />}
       </main>
     </div>
   );

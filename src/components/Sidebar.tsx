@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Users, CreditCard, Settings } from 'lucide-react';
+import { Sparkles, Users, CreditCard, Settings, Zap } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
@@ -9,6 +9,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
   const menu = [
     { id: 'generator', icon: Sparkles, label: 'ИИ-Копирайтер' },
+    { id: 'smartlink', icon: Zap, label: 'Smart-ссылки' },
     { id: 'leads', icon: Users, label: 'Заявки (Лиды)' },
     { id: 'tariffs', icon: CreditCard, label: 'Подписка' },
     { id: 'settings', icon: Settings, label: 'Настройки бота' },

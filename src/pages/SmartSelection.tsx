@@ -9,6 +9,8 @@ export const SmartSelection = () => {
   const queryParams = new URLSearchParams(location.search);
   const psyParam = queryParams.get('psy') || 'emotional';
   const agentParam = queryParams.get('agent') || 'default';
+  const audParam = queryParams.get('aud') || 'Семья с детьми';
+  const toneParam = queryParams.get('tone') || 'friendly';
 
   const getInitialMessage = (psy: string) => {
     switch(psy) {
@@ -49,7 +51,7 @@ export const SmartSelection = () => {
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
       const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). Контекст: Турист смотрит (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос: ${input}. 
-      Тон: ${tone}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}.
+      Тон: ${toneParam}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}. Аудитория: ${audParam}.
       ТЕКУЩИЕ ФИЛЬТРЫ: Бюджет ${filters.budget}₽, ${filters.nights}н, Питание ${filters.meals}.
       
       ИНСТРУКЦИЯ ПО ПСИХОТИПУ:
@@ -109,7 +111,7 @@ export const SmartSelection = () => {
         <div className="lg:col-span-2 space-y-8">
           <div>
             <h1 className="text-2xl font-black mb-2">🇹🇷 Турция: Бархатный сезон</h1>
-            <p className="text-slate-600">Специально для семьи с 2 детьми. Вылет 15.09 на 9 ночей.</p>
+            <p className="text-slate-600">Специально для: {audParam}. Вылет 15.09 на 9 ночей.</p>
           </div>
 
           {/* HOTEL CARD 1 */}

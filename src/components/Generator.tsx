@@ -7,7 +7,9 @@ export const Generator = () => {
   const [otpravkinLink, setOtpravkinLink] = useState('');
   const [blacklist, setBlacklist] = useState('');
   const [audience, setAudience] = useState('Семья с детьми');
-  const [profile, setProfile] = useState('Обычный турист');
+  const [profile, setProfile] = useState('emotional');
+  const [tone, setTone] = useState('friendly');
+  const [length, setLength] = useState('medium');
   const [stealthMode, setStealthMode] = useState(false);
   const [result, setResult] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -63,6 +65,8 @@ export const Generator = () => {
           - Ссылка на подборку (Отправкин.ру): ${otpravkinLink || 'Не указана'}
           - Аудитория: ${audience}
           - Психотип клиента: ${profile}
+          - Тон общения: ${tone} (friendly, expert, provocative, concise)
+          - Длина текста: ${length} (short, medium, long)
           - Стелс-режим: ${stealthMode ? 'ВКЛЮЧЕН (Не называй отели! Описывай их так, чтобы клиент влюбился, но не мог найти сам. Используй фразы "Этот отель...", "Роскошная пятерка в Белеке..." и т.д.)' : 'ВЫКЛЮЧЕН (Называй отели открыто)'}
           - Черный список отелей (НЕ ПРЕДЛАГАТЬ): ${blacklist || 'Нет'}
 
@@ -81,7 +85,16 @@ export const Generator = () => {
              - "adventurer": упор на активность, необычные экскурсии, драйв, "не как у всех", новые впечатления.
              - "romantic": упор на эстетику, закаты, уединение, красивые номера, сервис для пар.
              - "business": упор на локацию, Wi-Fi, скорость оформления, комфорт, статус, тишину.
-          5. В конце текста ОБЯЗАТЕЛЬНО добавь подпись мелким шрифтом или курсивом: 
+          5. Соблюдай тон общения:
+             - "friendly": Теплый, дружелюбный, на "ты" или мягкое "вы".
+             - "expert": Профессиональный, сдержанный, глубокий анализ.
+             - "provocative": Дерзкий, цепляющий, ломающий шаблоны.
+             - "concise": Максимально кратко, только суть, без лишних слов.
+          6. Соблюдай длину текста:
+             - "short": 1-2 абзаца.
+             - "medium": 3-4 абзаца.
+             - "long": Подробный разбор с деталями.
+          7. В конце текста ОБЯЗАТЕЛЬНО добавь подпись мелким шрифтом или курсивом: 
              "🤖 Анализ проведен нейросетью AIAIAI на базе реальных данных otpravkin.ru"
         `;
       }
@@ -102,26 +115,11 @@ export const Generator = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleShare = () => {
-    const link = `${window.location.origin}/selection`;
-    navigator.clipboard.writeText(link);
-    alert(`Ссылка для туриста скопирована: ${link}\n\nОтправьте её клиенту, чтобы он увидел "Умную подборку".`);
-  };
-
   return (
     <div className="max-w-6xl mx-auto">
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">ИИ-Копирайтер (Gemini 1.5)</h1>
-          <p className="text-slate-600">Вставьте ссылку на Отправкин.ру или описание отеля. Нейросеть сделает продающий пост.</p>
-        </div>
-        <button 
-          onClick={handleShare}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-sm whitespace-nowrap"
-        >
-          <Sparkles size={16} />
-          Создать Smart-ссылку
-        </button>
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-slate-900 mb-2">ИИ-Копирайтер (Gemini 1.5)</h1>
+        <p className="text-slate-600">Вставьте ссылку на Отправкин.ру или описание отеля. Нейросеть сделает продающий пост.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -158,6 +156,36 @@ export const Generator = () => {
                 <option value="adventurer">Искатель (Драйв и актив)</option>
                 <option value="romantic">Романтик (Виды и эстетика)</option>
                 <option value="business">Бизнес (Комфорт и скорость)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* New Filters: Tone and Length */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Тон общения</label>
+              <select 
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-700 transition-colors text-sm"
+              >
+                <option value="friendly">Дружелюбный 😊</option>
+                <option value="expert">Экспертный 🧐</option>
+                <option value="provocative">Дерзкий 🔥</option>
+                <option value="concise">Лаконичный ⚡</option>
+              </select>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Длина текста</label>
+              <select 
+                value={length}
+                onChange={(e) => setLength(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 outline-none focus:border-blue-700 transition-colors text-sm"
+              >
+                <option value="short">Короткий (1-2 абз.)</option>
+                <option value="medium">Средний (3-4 абз.)</option>
+                <option value="long">Длинный (разбор)</option>
               </select>
             </div>
           </div>
@@ -265,32 +293,6 @@ export const Generator = () => {
                     {result}
                   </div>
                 </div>
-
-                {/* Section 2: Smart Link */}
-                {otpravkinLink && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white">
-                        <Sparkles size={14} />
-                      </div>
-                      <span className="text-sm font-bold text-slate-700">Для Туриста (Smart Link)</span>
-                    </div>
-                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex items-center justify-between gap-4">
-                      <div className="text-sm text-blue-900 font-medium truncate">
-                        {window.location.origin}/selection
-                      </div>
-                      <button 
-                        onClick={handleShare}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap"
-                      >
-                        Копировать ссылку
-                      </button>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2 ml-1">
-                      Отправьте эту ссылку клиенту. Там его ждет персональный ИИ-гид по этой подборке.
-                    </p>
-                  </div>
-                )}
               </>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 text-sm text-center px-8">
