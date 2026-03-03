@@ -5,6 +5,14 @@ export const SmartLink = () => {
   const [psy, setPsy] = useState('emotional');
   const [audience, setAudience] = useState('Семья с детьми');
   const [tone, setTone] = useState('friendly');
+  const [budget, setBudget] = useState('300000');
+  const [nights, setNights] = useState('7');
+  const [stars, setStars] = useState('5');
+  const [meals, setMeals] = useState('AI');
+  const [destination, setDestination] = useState('Турция');
+  const [adults, setAdults] = useState('2');
+  const [children, setChildren] = useState('0');
+  const [wishes, setWishes] = useState('');
   const [agentId, setAgentId] = useState('agent_' + Math.random().toString(36).substr(2, 9));
   const [copied, setCopied] = useState(false);
 
@@ -14,7 +22,15 @@ export const SmartLink = () => {
       agent: agentId,
       psy: psy,
       aud: audience,
-      tone: tone
+      tone: tone,
+      budget: budget,
+      nights: nights,
+      stars: stars,
+      meals: meals,
+      dest: destination,
+      adults: adults,
+      kids: children,
+      wish: wishes
     });
     return `${baseUrl}?${params.toString()}`;
   };
@@ -40,6 +56,7 @@ export const SmartLink = () => {
           </h3>
 
           <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
                 <Globe size={14} /> Психотип клиента
@@ -91,6 +108,113 @@ export const SmartLink = () => {
                 <option value="concise">Лаконичный ⚡</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <Zap size={14} /> Направление
+              </label>
+              <input 
+                type="text"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                placeholder="Турция, ОАЭ..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                💰 Бюджет (до)
+              </label>
+              <input 
+                type="number"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                🌙 Ночей
+              </label>
+              <input 
+                type="number"
+                value={nights}
+                onChange={(e) => setNights(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                ⭐ Звездность
+              </label>
+              <select 
+                value={stars}
+                onChange={(e) => setStars(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              >
+                <option value="5">5 звезд</option>
+                <option value="4">4 звезды</option>
+                <option value="3">3 звезды</option>
+                <option value="any">Любая</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                🍽️ Питание
+              </label>
+              <select 
+                value={meals}
+                onChange={(e) => setMeals(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              >
+                <option value="AI">Все включено</option>
+                <option value="UAI">Ультра все включено</option>
+                <option value="FB">Полный пансион</option>
+                <option value="HB">Завтрак + ужин</option>
+                <option value="BB">Только завтрак</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                👥 Взрослых
+              </label>
+              <input 
+                type="number"
+                value={adults}
+                onChange={(e) => setAdults(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                👶 Детей
+              </label>
+              <input 
+                type="number"
+                value={children}
+                onChange={(e) => setChildren(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+              📝 Пожелания клиента (скрыто от него)
+            </label>
+            <textarea 
+              value={wishes}
+              onChange={(e) => setWishes(e.target.value)}
+              placeholder="Например: Любят тишину, нужен хороший Wi-Fi, хотят рядом с центром..."
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors text-sm h-20 resize-none"
+            />
+          </div>
           </div>
         </div>
 

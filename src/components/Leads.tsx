@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { sendTelegramNotification } from '../services/telegram';
 import { Send, CheckCircle2 } from 'lucide-react';
 
@@ -9,8 +9,14 @@ export const Leads = () => {
   const [filterCountry, setFilterCountry] = useState('all');
   const [filterBudget, setFilterBudget] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [dynamicLeads, setDynamicLeads] = useState<any[]>([]);
 
-  const allLeads = [
+  useEffect(() => {
+    const savedLeads = JSON.parse(localStorage.getItem('leads') || '[]');
+    setDynamicLeads(savedLeads);
+  }, []);
+
+  const staticLeads = [
     { id: 1, country: 'Турция', budget: 250000, status: 'Новый', time: '10 мин назад', details: 'Семья 2+1 • Вылет в августе', client: '@ivan_tur' },
     { id: 2, country: 'Египет', budget: 150000, status: 'В работе', time: '1 час назад', details: 'Пара • Отель 5* • Все включено', client: '@elena_travel' },
     { id: 3, country: 'ОАЭ', budget: 450000, status: 'Новый', time: '3 часа назад', details: 'Бизнес-поездка • Дубай Марина', client: '+7 (900) 123-44-55' },
@@ -21,18 +27,23 @@ export const Leads = () => {
     { id: 8, country: 'Египет', budget: 95000, status: 'Завершен', time: '4 дня назад', details: 'Горящий тур • Хургада', client: 'Анна С.' },
   ];
 
+  const allLeads = [...dynamicLeads, ...staticLeads];
+
   const filteredLeads = allLeads.filter(lead => {
-    const matchStatus = filterStatus === 'all' || lead.status === filterStatus;
+    const leadStatus = lead.status === 'new' ? 'Новый' : lead.status;
+    const matchStatus = filterStatus === 'all' || leadStatus === filterStatus;
     const matchCountry = filterCountry === 'all' || lead.country === filterCountry;
     const matchSearch = searchQuery === '' || 
       lead.country.toLowerCase().includes(searchQuery.toLowerCase()) || 
       lead.details.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      lead.client.toLowerCase().includes(searchQuery.toLowerCase());
+      (lead.client || lead.name || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     let matchBudget = true;
-    if (filterBudget === 'low') matchBudget = lead.budget < 200000;
-    else if (filterBudget === 'mid') matchBudget = lead.budget >= 200000 && lead.budget <= 500000;
-    else if (filterBudget === 'high') matchBudget = lead.budget > 500000;
+    const budgetValue = typeof lead.budget === 'string' ? parseInt(lead.budget.replace(/\D/g, '')) : lead.budget;
+    
+    if (filterBudget === 'low') matchBudget = budgetValue < 200000;
+    else if (filterBudget === 'mid') matchBudget = budgetValue >= 200000 && budgetValue <= 500000;
+    else if (filterBudget === 'high') matchBudget = budgetValue > 500000;
 
     return matchStatus && matchCountry && matchBudget && matchSearch;
   });
@@ -162,7 +173,8 @@ export const Leads = () => {
                     </span>
                   </div>
                   <div className="text-sm text-slate-500 mt-1">
-                    <span className="text-slate-900 font-bold">{lead.client}</span> • {lead.details}
+                    <span className="text-slate-900 font-bold">{lead.client || lead.name}</span> • {lead.details}
+                    {lead.source && <span className="ml-2 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 uppercase font-bold">{lead.source}</span>}
                   </div>
                 </div>
                 <div className="text-right">

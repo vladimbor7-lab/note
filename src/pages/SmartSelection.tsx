@@ -11,6 +11,14 @@ export const SmartSelection = () => {
   const agentParam = queryParams.get('agent') || 'default';
   const audParam = queryParams.get('aud') || 'Семья с детьми';
   const toneParam = queryParams.get('tone') || 'friendly';
+  const budgetParam = queryParams.get('budget') || '300000';
+  const nightsParam = queryParams.get('nights') || '7';
+  const starsParam = queryParams.get('stars') || '5';
+  const mealsParam = queryParams.get('meals') || 'AI';
+  const destParam = queryParams.get('dest') || 'Турция';
+  const adultsParam = queryParams.get('adults') || '2';
+  const kidsParam = queryParams.get('kids') || '0';
+  const wishParam = queryParams.get('wish') || '';
 
   const getInitialMessage = (psy: string) => {
     switch(psy) {
@@ -50,9 +58,19 @@ export const SmartSelection = () => {
       const tone = settings.tone || 'friendly';
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
-      const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). Контекст: Турист смотрит (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос: ${input}. 
-      Тон: ${toneParam}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}. Аудитория: ${audParam}.
-      ТЕКУЩИЕ ФИЛЬТРЫ: Бюджет ${filters.budget}₽, ${filters.nights}н, Питание ${filters.meals}.
+      const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). 
+      Контекст подборки: 
+      - Направление: ${destParam}
+      - Аудитория: ${audParam}
+      - Бюджет: ${budgetParam}₽
+      - Ночей: ${nightsParam}
+      - Состав: ${adultsParam} взр, ${kidsParam} детей
+      - Звездность: ${starsParam}*
+      - Питание: ${mealsParam}
+      - Пожелания от агента (скрыто от туриста, но учти это): ${wishParam}
+      
+      Вопрос туриста: ${input}. 
+      Тон: ${toneParam}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}.
       
       ИНСТРУКЦИЯ ПО ПСИХОТИПУ:
       - Если rational: делай упор на цифры, выгоду, инфраструктуру, сравнение фактов.
@@ -83,6 +101,24 @@ export const SmartSelection = () => {
     }
   };
 
+  const handleBookingRequest = (hotelName: string) => {
+    const newLead = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: 'Новый клиент (из Smart Link)',
+      country: destParam,
+      budget: `${budgetParam} ₽`,
+      details: `Запрос на отель: ${hotelName}. Параметры: ${nightsParam}н, ${mealsParam}, ${adultsParam} взр + ${kidsParam} детей.`,
+      status: 'new',
+      time: 'Только что',
+      source: 'Smart Link'
+    };
+
+    const existingLeads = JSON.parse(localStorage.getItem('leads') || '[]');
+    localStorage.setItem('leads', JSON.stringify([newLead, ...existingLeads]));
+    
+    alert(`Заявка на отель ${hotelName} отправлена менеджеру! Мы свяжемся с вами в ближайшее время.`);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
       {/* WHITE LABEL HEADER */}
@@ -110,28 +146,28 @@ export const SmartSelection = () => {
         {/* LEFT: SELECTION CONTENT */}
         <div className="lg:col-span-2 space-y-8">
           <div>
-            <h1 className="text-2xl font-black mb-2">🇹🇷 Турция: Бархатный сезон</h1>
-            <p className="text-slate-600">Специально для: {audParam}. Вылет 15.09 на 9 ночей.</p>
+            <h1 className="text-2xl font-black mb-2">{destParam}: Подборка для вас</h1>
+            <p className="text-slate-600">Специально для: {audParam}. {nightsParam} ночей, {mealsParam}. {adultsParam} взр + {kidsParam} детей.</p>
           </div>
 
           {/* HOTEL CARD 1 */}
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 group">
             <div className="h-48 bg-slate-200 relative">
-              <img src="https://picsum.photos/seed/rixos/800/400" alt="Hotel" className="w-full h-full object-cover" />
+              <img src={`https://picsum.photos/seed/${destParam}1/800/400`} alt="Hotel" className="w-full h-full object-cover" />
               <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                <Star size={12} className="text-yellow-500 fill-yellow-500" /> 5.0 Rixos Premium
+                <Star size={12} className="text-yellow-500 fill-yellow-500" /> {starsParam}.0 Рекомендуемый отель
               </div>
             </div>
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-xl font-bold mb-1">Rixos Premium Belek</h3>
+                  <h3 className="text-xl font-bold mb-1">{destParam} Luxury Resort</h3>
                   <div className="flex items-center gap-1 text-slate-500 text-sm">
-                    <MapPin size={14} /> Белек, 1 линия
+                    <MapPin size={14} /> {destParam}, 1 линия
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-black text-blue-600">320 000 ₽</div>
+                  <div className="text-2xl font-black text-blue-600">{parseInt(budgetParam).toLocaleString()} ₽</div>
                   <div className="text-xs text-slate-400">за всех</div>
                 </div>
               </div>
@@ -143,41 +179,37 @@ export const SmartSelection = () => {
                   Мнение ИИ-эксперта
                 </div>
                 <p className="text-sm text-blue-900/80 leading-relaxed">
-                  Идеальный выбор для тех, кто ценит статус. <b>Фишка:</b> бесплатный вход в парк The Land of Legends (экономия ~300$ на семью). Питание — эталонное.
+                  Этот вариант идеально подходит под ваши параметры. <b>Фишка:</b> Высокий рейтинг по питанию и сервису.
                 </p>
               </div>
 
-              {/* HONESTY BLOCK */}
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                <div className="flex items-center gap-2 mb-2 text-slate-700 font-bold text-sm">
-                  <AlertTriangle size={16} className="text-orange-500" />
-                  Честный нюанс (Ожидание vs Реальность)
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Отель огромный, много ходить. Если любите камерность — может быть шумно. Номера Deluxe в основном здании лучше, чем в саду.
-                </p>
-              </div>
+              <button 
+                onClick={() => handleBookingRequest(`${destParam} Luxury Resort`)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all active:scale-95"
+              >
+                Оставить заявку на этот отель
+              </button>
             </div>
           </div>
 
           {/* HOTEL CARD 2 */}
           <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 group">
             <div className="h-48 bg-slate-200 relative">
-              <img src="https://picsum.photos/seed/alva/800/400" alt="Hotel" className="w-full h-full object-cover" />
+              <img src={`https://picsum.photos/seed/${destParam}2/800/400`} alt="Hotel" className="w-full h-full object-cover" />
               <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                <Star size={12} className="text-yellow-500 fill-yellow-500" /> 4.8 Alva Donna
+                <Star size={12} className="text-yellow-500 fill-yellow-500" /> {starsParam}.0 Выгодный вариант
               </div>
             </div>
             <div className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
-                  <h3 className="text-xl font-bold mb-1">Alva Donna Exclusive</h3>
+                  <h3 className="text-xl font-bold mb-1">{destParam} Family Club</h3>
                   <div className="flex items-center gap-1 text-slate-500 text-sm">
-                    <MapPin size={14} /> Белек, 1 линия
+                    <MapPin size={14} /> {destParam}, 2 линия
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-black text-blue-600">245 000 ₽</div>
+                  <div className="text-2xl font-black text-blue-600">{(parseInt(budgetParam) * 0.8).toLocaleString()} ₽</div>
                   <div className="text-xs text-slate-400">за всех</div>
                 </div>
               </div>
@@ -189,12 +221,18 @@ export const SmartSelection = () => {
                   Мнение ИИ-эксперта
                 </div>
                 <p className="text-sm text-blue-900/80 leading-relaxed">
-                  Топ за свои деньги. Подогреваемые бассейны даже в мае. Анимация — одна из лучших на побережье, дети будут заняты весь день.
+                  Более бюджетный, но качественный вариант. Отлично подойдет для {audParam}.
                 </p>
               </div>
+
+              <button 
+                onClick={() => handleBookingRequest(`${destParam} Family Club`)}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-bold transition-all active:scale-95"
+              >
+                Хочу узнать подробнее
+              </button>
             </div>
           </div>
-
         </div>
 
         {/* RIGHT: AI CONCIERGE */}
