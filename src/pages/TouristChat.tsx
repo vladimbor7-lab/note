@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import { generateTravelResponse } from '../services/gemini';
 
 interface Message {
@@ -12,7 +13,7 @@ interface Message {
 export const TouristChat = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Привет! 👋 Я твой ИИ-помощник по турам. Работаю с базой sletat.ru. Куда хочешь махнуть?\n\n(Демо: цены примерные, ссылок нет)' }
+    { role: 'assistant', content: 'Привет! 👋 Я твой **ИИ-помощник по турам**. \n\nРаботаю с базой **sletat.ru**. Куда хочешь махнуть? ✈️\n\n*(Демо: цены примерные, ссылок нет)*' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +46,14 @@ export const TouristChat = () => {
     beachDistance: 'any',
     roomType: 'any',
     spa: false,
-    animation: false
+    animation: false,
+    searchType: 'tours', // 'tours' | 'hotels'
+    isHot: false,
+    dateStart: '2026-03-03',
+    dateEnd: '2026-03-12',
+    nightsMin: 6,
+    nightsMax: 14,
+    flightClass: 'economy'
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -70,11 +78,12 @@ export const TouristChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = async (customMessage?: string) => {
+    const messageToSend = customMessage || input;
+    if (!messageToSend.trim()) return;
 
-    const userMessage = input;
-    setInput('');
+    const userMessage = messageToSend;
+    if (!customMessage) setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
@@ -82,7 +91,17 @@ export const TouristChat = () => {
       // Get settings
       const savedSettings = localStorage.getItem('botSettings');
       const settings = savedSettings ? JSON.parse(savedSettings) : {};
-      const systemPrompt = settings.systemPrompt || 'Ты - живой и общительный ИИ-турагент (база sletat.ru). Пиши кратко, как в мессенджере. Никакого официоза. В конце всегда напоминай про демо-режим, примерные цены и отсутствие ссылок.';
+      const systemPrompt = settings.systemPrompt || `
+        Ты - профессиональный ИИ-турагент (база sletat.ru). 
+        Оформляй ответы КРАСИВО и структурировано:
+        - Используй жирный шрифт для названий отелей и цен.
+        - Используй списки для перечисления преимуществ.
+        - Добавляй подходящие эмодзи.
+        - Пиши живым, человечным языком, но профессионально.
+        - В конце всегда напоминай про демо-режим, примерные цены и отсутствие ссылок.
+
+        ВАЖНО: Если турист в своем сообщении явно указывает новые параметры (например, "смени бюджет на 100к" или "хочу в Турцию"), ПРИОРИТЕТИЗИРУЙ это над текущими фильтрами из контекста. Подтверждай, что ты учел новые пожелания.
+      `;
       const tone = settings.tone || 'friendly';
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
@@ -93,9 +112,13 @@ export const TouristChat = () => {
         Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}
 
         ТЕКУЩИЕ ФИЛЬТРЫ ТУРИСТА (учитывай их при подборе):
+        - Тип поиска: ${filters.searchType === 'tours' ? 'Туры с перелетом' : 'Только отели'}
+        - Горящие туры: ${filters.isHot ? 'ДА' : 'Нет'}
         - Город вылета: ${filters.departureCity}
+        - Даты вылета: с ${filters.dateStart} по ${filters.dateEnd}
+        - Ночей: от ${filters.nightsMin} до ${filters.nightsMax}
+        - Класс перелета: ${filters.flightClass === 'economy' ? 'Эконом' : 'Бизнес'}
         - Бюджет: до ${filters.budget} руб.
-        - Ночей: ${filters.nights}
         - Направление: ${filters.destination || 'Не указано'}
         - Питание: ${filters.meals}
         - Звездность: ${filters.stars}
@@ -157,7 +180,7 @@ export const TouristChat = () => {
           <ArrowLeft size={24} />
         </button>
         <div>
-          <h1 className="font-bold text-slate-900">ИИ-Турагент (Sletat.ru)</h1>
+          <h1 className="font-bold text-slate-900">Менеджер для туристов (Sletat.ru)</h1>
           <p className="text-xs text-slate-500">Онлайн • Отвечает мгновенно</p>
         </div>
         <button 
@@ -205,7 +228,14 @@ export const TouristChat = () => {
                   beachDistance: 'any',
                   roomType: 'any',
                   spa: false,
-                  animation: false
+                  animation: false,
+                  searchType: 'tours',
+                  isHot: false,
+                  dateStart: '2026-03-03',
+                  dateEnd: '2026-03-12',
+                  nightsMin: 6,
+                  nightsMax: 14,
+                  flightClass: 'economy'
                 })}
                 className="text-[10px] text-blue-600 hover:underline"
               >
@@ -214,6 +244,35 @@ export const TouristChat = () => {
             </div>
             
             <div className="space-y-4">
+              {/* Search Type Tabs */}
+              <div className="flex bg-slate-100 p-1 rounded-xl">
+                <button 
+                  onClick={() => setFilters({...filters, searchType: 'tours'})}
+                  className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${filters.searchType === 'tours' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
+                >
+                  Туры
+                </button>
+                <button 
+                  onClick={() => setFilters({...filters, searchType: 'hotels'})}
+                  className={`flex-1 py-2 text-xs font-medium rounded-lg transition-all ${filters.searchType === 'hotels' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-500'}`}
+                >
+                  Отели
+                </button>
+              </div>
+
+              {/* Hot Tours Toggle */}
+              <div className="flex items-center justify-between p-2 bg-orange-50 rounded-lg border border-orange-100">
+                <span className="text-xs font-medium text-orange-700 flex items-center gap-1">
+                  <span>🔥</span> Горящие туры
+                </span>
+                <button 
+                  onClick={() => setFilters({...filters, isHot: !filters.isHot})}
+                  className={`w-10 h-5 rounded-full transition-colors relative ${filters.isHot ? 'bg-orange-500' : 'bg-slate-300'}`}
+                >
+                  <div className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${filters.isHot ? 'left-6' : 'left-1'}`} />
+                </button>
+              </div>
+
               {/* Departure City */}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Город вылета</label>
@@ -223,12 +282,80 @@ export const TouristChat = () => {
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   <option value="Москва">Москва</option>
-                  <option value="Санкт-Петербург">Санкт-Петербург</option>
                   <option value="Екатеринбург">Екатеринбург</option>
+                  <option value="Санкт-Петербург">Санкт-Петербург</option>
                   <option value="Казань">Казань</option>
                   <option value="Новосибирск">Новосибирск</option>
+                  <option value="Самара">Самара</option>
+                  <option value="Уфа">Уфа</option>
+                  <option value="Тюмень">Тюмень</option>
+                  <option value="Челябинск">Челябинск</option>
                   <option value="Сочи">Сочи</option>
                 </select>
+              </div>
+
+              {/* Dates */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-slate-400 uppercase">Вылет с</label>
+                  <input 
+                    type="date" 
+                    value={filters.dateStart}
+                    onChange={(e) => setFilters({...filters, dateStart: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-medium text-slate-400 uppercase">По</label>
+                  <input 
+                    type="date" 
+                    value={filters.dateEnd}
+                    onChange={(e) => setFilters({...filters, dateEnd: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Nights Range */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Ночей: {filters.nightsMin} - {filters.nightsMax}</label>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="30" 
+                    value={filters.nightsMin}
+                    onChange={(e) => setFilters({...filters, nightsMin: parseInt(e.target.value)})}
+                    className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="30" 
+                    value={filters.nightsMax}
+                    onChange={(e) => setFilters({...filters, nightsMax: parseInt(e.target.value)})}
+                    className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                  />
+                </div>
+              </div>
+
+              {/* Flight Class */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Класс</label>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setFilters({...filters, flightClass: 'economy'})}
+                    className={`flex-1 py-1.5 text-[10px] font-medium rounded-lg border transition-all ${filters.flightClass === 'economy' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-200 text-slate-500'}`}
+                  >
+                    Эконом
+                  </button>
+                  <button 
+                    onClick={() => setFilters({...filters, flightClass: 'business'})}
+                    className={`flex-1 py-1.5 text-[10px] font-medium rounded-lg border transition-all ${filters.flightClass === 'business' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-white border-slate-200 text-slate-500'}`}
+                  >
+                    Бизнес
+                  </button>
+                </div>
               </div>
 
               {/* Budget */}
@@ -454,7 +581,7 @@ export const TouristChat = () => {
 
             <button 
               onClick={() => {
-                const filterSummary = `Обновил фильтры: Вылет из ${filters.departureCity}, ${filters.destination || 'Любое направление'}, ${filters.budget}₽, ${filters.nights}н, ${filters.adults}+${filters.children} чел, ${filters.meals}, ${filters.stars}*, рейтинг от ${filters.hotelRating}, пляж: ${filters.beachType}, до пляжа: ${filters.beachDistance}, номер: ${filters.roomType}, сорт: ${filters.sortBy}, цена за: ${filters.pricePerPerson ? 'чел' : 'тур'}. Доп: ${[
+                const filterSummary = `Обновил фильтры: ${filters.searchType === 'tours' ? 'Туры' : 'Отели'}, ${filters.isHot ? 'ГОРЯЩИЕ! ' : ''}Вылет из ${filters.departureCity}, ${filters.destination || 'Любое направление'}, Даты: ${filters.dateStart}-${filters.dateEnd}, ${filters.nightsMin}-${filters.nightsMax} ночей, ${filters.adults}+${filters.children} чел, Класс: ${filters.flightClass}, Бюджет: ${filters.budget}₽, Питание: ${filters.meals}, Звезды: ${filters.stars}*, Рейтинг: ${filters.hotelRating}+, Пляж: ${filters.beachType}, До пляжа: ${filters.beachDistance}, Номер: ${filters.roomType}, Сорт: ${filters.sortBy}, Цена за: ${filters.pricePerPerson ? 'чел' : 'тур'}. Доп: ${[
                   filters.wifi ? 'Wi-Fi' : '',
                   filters.firstLine ? '1-я линия' : '',
                   filters.pool ? 'бассейн' : '',
@@ -468,8 +595,7 @@ export const TouristChat = () => {
                   filters.directFlight ? 'прямой рейс' : '',
                   filters.baggage ? 'багаж' : ''
                 ].filter(Boolean).join(', ') || 'нет'}. Что предложишь?`;
-                setInput(filterSummary);
-                handleSend();
+                handleSend(filterSummary);
                 if (window.innerWidth < 640) setShowFilters(false);
               }}
               className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
@@ -493,7 +619,21 @@ export const TouristChat = () => {
                   ? 'bg-blue-600 text-white rounded-tr-none' 
                   : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-sm'
               }`}>
-                {msg.content}
+                <div className={`markdown-content ${msg.role === 'user' ? 'text-white' : 'text-slate-800'}`}>
+                  <ReactMarkdown 
+                    components={{
+                      p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                      ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-2" {...props} />,
+                      ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-2" {...props} />,
+                      li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                      strong: ({node, ...props}) => <strong className={`font-bold ${msg.role === 'user' ? 'text-white underline' : 'text-blue-600'}`} {...props} />,
+                      h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2" {...props} />,
+                      h2: ({node, ...props}) => <h2 className="text-base font-bold mb-1" {...props} />,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                </div>
               </div>
               
               {msg.links && msg.links.length > 0 && (
@@ -537,11 +677,16 @@ export const TouristChat = () => {
               <div className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] flex items-center gap-1">
                 <span>🛫</span> {filters.departureCity}
               </div>
+              {filters.isHot && (
+                <div className="px-2 py-1 bg-orange-100 text-orange-700 rounded-md text-[10px] flex items-center gap-1 animate-pulse">
+                  <span>🔥</span> Горящий
+                </div>
+              )}
               <div className="px-2 py-1 bg-slate-100 rounded-md text-[10px] text-slate-500 flex items-center gap-1">
                 <span>💰</span> {filters.budget.toLocaleString()}₽
               </div>
               <div className="px-2 py-1 bg-slate-100 rounded-md text-[10px] text-slate-500 flex items-center gap-1">
-                <span>🌙</span> {filters.nights}н
+                <span>🌙</span> {filters.nightsMin}-{filters.nightsMax}н
               </div>
               {filters.destination && (
                 <div className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[10px] flex items-center gap-1">
@@ -558,6 +703,9 @@ export const TouristChat = () => {
               )}
               <div className="px-2 py-1 bg-slate-100 rounded-md text-[10px] text-slate-500 flex items-center gap-1">
                 <span>📈</span> {filters.hotelRating}+
+              </div>
+              <div className="px-2 py-1 bg-slate-100 rounded-md text-[10px] text-slate-500 flex items-center gap-1">
+                <span>📅</span> {filters.dateStart}
               </div>
               {filters.directFlight && (
                 <div className="px-2 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[10px] flex items-center gap-1">
@@ -577,12 +725,12 @@ export const TouristChat = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                placeholder="Напишите сообщение..."
-                className="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                placeholder="Напишите сообщение или измените фильтры (напр. 'бюджет 100к')..."
+                className="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
                 disabled={isLoading}
               />
               <button 
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={isLoading || !input.trim()}
                 className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white p-3 rounded-xl transition-colors flex items-center justify-center"
               >

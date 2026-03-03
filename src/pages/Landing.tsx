@@ -18,7 +18,7 @@ export const Landing = () => {
           </a>
           <div className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
             <span className="hover:text-blue-600 cursor-pointer transition-colors">Демо агента</span>
-            <a href="/chat" className="hover:text-blue-600 transition-colors">Я турист</a>
+            <a href="/chat" className="hover:text-blue-600 transition-colors">Менеджер для туристов</a>
             <span className="hover:text-blue-600 cursor-pointer transition-colors">Возможности</span>
             <span className="hover:text-blue-600 cursor-pointer transition-colors">Тарифы</span>
           </div>
@@ -49,22 +49,22 @@ export const Landing = () => {
                 Попробовать бесплатно
               </button>
               <button onClick={() => navigate('/chat')} className="bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:border-slate-300">
-                Я турист (Бот)
+                Менеджер для туристов (Бот)
               </button>
             </div>
 
             <div className="flex items-center gap-8 text-sm font-bold text-slate-500">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-green-500 rounded-full"></div>
-                Gemini 1.5
+                Психотипы клиентов
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-blue-500 rounded-full"></div>
-                Otprovin
+                Генерация постов
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-1 h-4 bg-violet-500 rounded-full"></div>
-                WhatsApp
+                Виджеты и ТГ-боты
               </div>
             </div>
           </div>
@@ -135,19 +135,19 @@ export const Landing = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl mb-6">🪄</div>
-              <h3 className="text-xl font-bold mb-3">Мгновенный оффер</h3>
-              <p className="text-slate-600 leading-relaxed">Вставьте ссылку на Отправкин — получите идеальный текст для WhatsApp за 5 секунд.</p>
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl mb-6">🧠</div>
+              <h3 className="text-xl font-bold mb-3">Психотипы ИИ</h3>
+              <p className="text-slate-600 leading-relaxed">Бот подстраивается под клиента: рациональный, эмоциональный, люкс или семейный подход.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
-              <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl mb-6">💬</div>
-              <h3 className="text-xl font-bold mb-3">Умная витрина</h3>
-              <p className="text-slate-600 leading-relaxed">Отправьте клиенту ссылку на персонального ИИ-гида по вашим отелям. Он ответит на все вопросы клиента за вас.</p>
+              <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl mb-6">📝</div>
+              <h3 className="text-xl font-bold mb-3">Генератор контента</h3>
+              <p className="text-slate-600 leading-relaxed">Создавайте продающие посты для соцсетей из обычных ссылок на отели за считанные секунды.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
-              <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mb-6">📱</div>
-              <h3 className="text-xl font-bold mb-3">Дожим 2.0</h3>
-              <p className="text-slate-600 leading-relaxed">ИИ анализирует поведение туриста и подсказывает вам, когда пора звонить и закрывать сделку.</p>
+              <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-2xl mb-6">🔌</div>
+              <h3 className="text-xl font-bold mb-3">Легкая интеграция</h3>
+              <p className="text-slate-600 leading-relaxed">Установите виджет на сайт или создайте Telegram-бота для общения с туристами в один клик.</p>
             </div>
           </div>
         </div>

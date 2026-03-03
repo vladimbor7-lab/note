@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { generateTravelResponse } from '../services/gemini';
 
 export const LandingChat = () => {
   const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string, links?: {title: string, uri: string}[]}[]>([
-    { role: 'assistant', content: 'Привет! 👋 Я твой ИИ-помощник по турам. Работаю с базой sletat.ru. Куда хочешь махнуть?\n\n(Демо: цены примерные, ссылок нет)' }
+    { role: 'assistant', content: 'Привет! 👋 Я твой **ИИ-помощник по турам**. \n\nРаботаю с базой **sletat.ru**. Куда хочешь махнуть? ✈️\n\n*(Демо: цены примерные, ссылок нет)*' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +29,20 @@ export const LandingChat = () => {
     setIsLoading(true);
 
     try {
-      const enhancedMessage = `[Бюджет: до ${budget} руб] ${userMessage}`;
+      const enhancedMessage = `
+        Ты - профессиональный ИИ-турагент (база sletat.ru). 
+        Оформляй ответы КРАСИВО и структурировано:
+        - Используй жирный шрифт для названий отелей и цен.
+        - Используй списки для перечисления преимуществ.
+        - Добавляй подходящие эмодзи.
+        - Пиши живым, человечным языком, но профессионально.
+        - В конце всегда напоминай про демо-режим, примерные цены и отсутствие ссылок.
+
+        ВАЖНО: Если турист в своем сообщении явно указывает новые параметры (например, "смени бюджет на 100к" или "хочу в Турцию"), ПРИОРИТЕТИЗИРУЙ это над текущими фильтрами из контекста. Подтверждай, что ты учел новые пожелания.
+
+        [Бюджет: до ${budget} руб] 
+        Вопрос туриста: ${userMessage}
+      `;
       const reply = await generateTravelResponse(enhancedMessage);
       
       setMessages(prev => [...prev, { 
@@ -77,7 +91,19 @@ export const LandingChat = () => {
                   ? 'bg-blue-600 text-white rounded-tr-none' 
                   : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
               }`}>
-                {msg.content}
+                <div className="markdown-content">
+                  <ReactMarkdown
+                    components={{
+                      p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                      ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-2" {...props} />,
+                      ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-2" {...props} />,
+                      li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                      strong: ({node, ...props}) => <strong className={`font-bold ${msg.role === 'user' ? 'text-white underline' : 'text-blue-600'}`} {...props} />,
+                    }}
+                  >
+                    {msg.content}
+                  </ReactMarkdown>
+                </div>
               </div>
               {msg.links && msg.links.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">

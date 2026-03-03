@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageCircle, Phone, Star, MapPin, ShieldCheck, AlertTriangle, Send } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { generateTravelResponse } from '../services/gemini';
 
 export const SmartSelection = () => {
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const psyParam = queryParams.get('psy') || 'emotional';
+  const agentParam = queryParams.get('agent') || 'default';
+
+  const getInitialMessage = (psy: string) => {
+    switch(psy) {
+      case 'rational': return 'Привет! 👋 Я **Мария**, твой ИИ-аналитик. \n\nПроверила подборку по **sletat.ru**: \n* **Rixos** — лучший по соотношению цена/качество\n* **Alva Donna** — выгоднее на 25%\n\nКакие параметры сравним? 📊';
+      case 'luxury': return 'Добрый день. Я ваш **персональный консьерж**. \n\nПодготовила эксклюзивные варианты: \n* **Rixos Premium** — безупречный сервис и статус\n* **Nirvana** — приватность и роскошь\n\nЖелаете обсудить детали трансфера? 🥂';
+      case 'family': return 'Здравствуйте! 👋 Я **Мария**, помогу вашей семье. \n\nПосмотрела отели для деток: \n* **Alva Donna** — лучший мини-клуб и питание\n* **Rixos** — аквапарк мечты\n\nРассказать про детское меню? 👨‍👩‍👧‍👦';
+      case 'skeptic': return 'Приветствую. Я **Мария**. \n\nОтобрала варианты с самым высоким рейтингом реальных отзывов: \n* **Rixos** — 9.8/10 по чистоте\n* **Alva Donna** — подтвержденное качество питания\n\nПрислать протоколы безопасности? 🧐';
+      case 'adventurer': return 'Хей! 👋 Я **Мария**, твой проводник. \n\nНашла места с драйвом: \n* **Nirvana** — рядом лучшие тропы для хайкинга\n* **Rixos** — доступ ко всем активностям Land of Legends\n\nГотов к приключениям? 🧗‍♂️';
+      case 'romantic': return 'Привет... Я **Мария**. ✨ \n\nНашла самые красивые закаты для вас: \n* **Rixos** — ужины у самой кромки воды\n* **Nirvana** — полная приватность в лесу\n\nХотите забронировать столик с видом? 🌅';
+      case 'business': return 'Добрый день. Я **Мария**, ваш бизнес-ассистент. \n\nВарианты с идеальной логистикой и связью: \n* **Rixos** — лучший конференц-сервис и Wi-Fi 6\n* **Alva Donna** — 15 минут от аэропорта\n\nНужно подготовить документы для отчетности? 💼';
+      default: return 'Привет! 👋 Я **Мария**, твой агент. \n\nГлянула подборку (база **sletat.ru**): \n* **Rixos** — это про релакс\n* **Alva Donna** — для детей\n\nЧто тебе ближе? 😊';
+    }
+  };
+
   const [messages, setMessages] = useState([
-    { role: 'ai', content: 'Привет! 👋 Я Мария, твой агент. Глянула подборку (база sletat.ru): Rixos — это про релакс, а Alva Donna — для детей. Что тебе ближе?\n\n(Демо: цены примерные, ссылок нет)' }
+    { role: 'ai', content: getInitialMessage(psyParam) + '\n\n*(Демо: цены примерные, ссылок нет)*' }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -29,9 +49,27 @@ export const SmartSelection = () => {
       const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
 
       const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). Контекст: Турист смотрит (Rixos Premium Belek, Alva Donna, Nirvana). Вопрос: ${input}. 
-      Тон: ${tone}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}.
+      Тон: ${tone}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}.
       ТЕКУЩИЕ ФИЛЬТРЫ: Бюджет ${filters.budget}₽, ${filters.nights}н, Питание ${filters.meals}.
-      Пиши максимально кратко, как в чате. Без лишних вступлений. В конце напомни про демо-режим, примерные цены и отсутствие ссылок.`;
+      
+      ИНСТРУКЦИЯ ПО ПСИХОТИПУ:
+      - Если rational: делай упор на цифры, выгоду, инфраструктуру, сравнение фактов.
+      - Если emotional: делай упор на атмосферу, чувства, "представьте как вы...", вайб.
+      - Если luxury: делай упор на эксклюзивность, сервис, бренды, статус, комфорт.
+      - Если family: делай упор на безопасность, детское питание, анимацию, удобство для родителей.
+      - Если skeptic: делай упор на факты, рейтинги, отсутствие скрытых доплат, гарантии возврата, реальные отзывы.
+      - Если adventurer: делай упор на необычные локации, активный отдых, экскурсии, "не как у всех", драйв.
+      - Если romantic: делай упор на эстетику, закаты, уединение, красивые номера, сервис для пар, атмосферу.
+      - Если business: делай упор на локацию, Wi-Fi, скорость оформления, комфорт, статус, тишину, отчетные документы.
+
+      Оформляй ответы КРАСИВО и структурировано:
+      - Используй жирный шрифт для названий отелей и цен.
+      - Используй списки для перечисления преимуществ.
+      - Добавляй подходящие эмодзи.
+      - Пиши живым, человечным языком, но профессионально.
+      - В конце напомни про демо-режим, примерные цены и отсутствие ссылок.
+      
+      ВАЖНО: Если турист в своем сообщении явно указывает новые параметры (например, "смени бюджет на 100к" или "хочу в Турцию"), ПРИОРИТЕТИЗИРУЙ это над текущими фильтрами из контекста. Подтверждай, что ты учел новые пожелания.`;
 
       const reply = await generateTravelResponse(prompt);
       
@@ -205,7 +243,19 @@ export const SmartSelection = () => {
                       ? 'bg-blue-600 text-white rounded-tr-none' 
                       : 'bg-slate-100 text-slate-800 rounded-tl-none'
                   }`}>
-                    {msg.content}
+                    <div className="markdown-content">
+                      <ReactMarkdown
+                        components={{
+                          p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc ml-4 mb-2" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal ml-4 mb-2" {...props} />,
+                          li: ({node, ...props}) => <li className="mb-1" {...props} />,
+                          strong: ({node, ...props}) => <strong className={`font-bold ${msg.role === 'user' ? 'text-white underline' : 'text-blue-600'}`} {...props} />,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                     {msg.role === 'ai' && (
                       <div className="mt-2 pt-2 border-t border-slate-200/50 text-[10px] opacity-50 flex items-center gap-1">
                         <ShieldCheck size={10} />
