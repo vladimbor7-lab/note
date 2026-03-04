@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LandingChat } from '../components/LandingChat';
+import { SearchInterface } from '../components/SearchInterface';
+import { HotelResults } from '../components/HotelResults';
 import { MessageCircle, Check, Zap, Globe, Shield } from 'lucide-react';
 import { Header } from '../components/Header';
 import '../landing.css';
@@ -12,6 +13,7 @@ export const Landing = () => {
     destination: '',
     type: 'tours'
   });
+  const [hotels, setHotels] = useState<any[]>([]);
 
   const handleHeroSearch = () => {
     const params = new URLSearchParams({
@@ -43,74 +45,7 @@ export const Landing = () => {
               Пока вы отдыхаете. Автоматическая упаковка подборок из Отправкин.ру в WhatsApp. ИИ-консультация для ваших туристов 24/7.
             </p>
 
-            {/* Professional Search Bar */}
-            <div className="bg-white p-2 rounded-3xl shadow-2xl border border-slate-100 mb-12 max-w-2xl">
-              <div className="bg-blue-600 p-4 rounded-2xl space-y-4">
-                <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-white/90 font-bold px-1">
-                  <div className="flex items-center gap-2">
-                    <span>из</span>
-                    <select 
-                      value={heroSearch.departure}
-                      onChange={(e) => setHeroSearch({...heroSearch, departure: e.target.value})}
-                      className="bg-transparent border-none text-white font-black outline-none cursor-pointer"
-                    >
-                      <option value="Москва" className="text-slate-900">Москва</option>
-                      <option value="Екатеринбург" className="text-slate-900">Екатеринбург</option>
-                      <option value="СПб" className="text-slate-900">СПб</option>
-                    </select>
-                  </div>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" name="st_hero" 
-                        checked={heroSearch.type === 'tours'} 
-                        onChange={() => setHeroSearch({...heroSearch, type: 'tours'})}
-                        className="w-3 h-3 accent-white" 
-                      />
-                      <span>Туры с перелетом</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" name="st_hero" 
-                        checked={heroSearch.type === 'hotels'} 
-                        onChange={() => setHeroSearch({...heroSearch, type: 'hotels'})}
-                        className="w-3 h-3 accent-white" 
-                      />
-                      <span>Отели</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input 
-                        type="radio" name="st_hero" 
-                        checked={heroSearch.type === 'hot'} 
-                        onChange={() => setHeroSearch({...heroSearch, type: 'hot'})}
-                        className="w-3 h-3 accent-white" 
-                      />
-                      <span>Горящие</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-                  <div className="md:col-span-2 bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm">
-                    <Globe size={18} className="text-slate-400" />
-                    <input 
-                      type="text" 
-                      placeholder="Страна, город или отель" 
-                      value={heroSearch.destination}
-                      onChange={(e) => setHeroSearch({...heroSearch, destination: e.target.value})}
-                      className="w-full text-sm outline-none text-slate-800" 
-                    />
-                  </div>
-                  <div className="bg-white rounded-xl p-3 flex flex-col justify-center shadow-sm">
-                    <span className="text-[9px] text-slate-400 uppercase font-black">Даты / Ночей</span>
-                    <div className="text-xs font-bold text-slate-900">5 мар - 14 мар (6-14н)</div>
-                  </div>
-                  <button onClick={handleHeroSearch} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black text-sm transition-all shadow-lg shadow-orange-500/20 active:scale-95">
-                    Найти туры
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* Professional Search Bar Removed */}
             
             <div className="flex flex-wrap gap-4 mb-12">
               <button onClick={() => navigate('/selection')} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1">
@@ -145,18 +80,7 @@ export const Landing = () => {
              
              {/* The Chat Widget Container */}
              <div className="relative z-10 w-full max-w-lg lg:max-w-xl">
-                <LandingChat />
-                
-                {/* Floating Badge */}
-                <div className="absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-2xl border border-slate-100 flex items-center gap-4 animate-bounce hidden md:flex" style={{ animationDuration: '3s' }}>
-                   <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/30">
-                      <MessageCircle size={24} />
-                   </div>
-                   <div>
-                      <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Статус</div>
-                      <div className="text-base font-black text-slate-900">ИИ-Менеджер онлайн</div>
-                   </div>
-                </div>
+                <SearchInterface onHotelsFound={setHotels} />
              </div>
           </div>
         </div>

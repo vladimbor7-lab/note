@@ -8,7 +8,9 @@ export const BotSettings = () => {
     tone: 'friendly', // friendly, formal, energetic
     useEmoji: true,
     psychotype: 'emotional', // emotional, rational, luxury, family
-    agentId: 'agent_' + Math.random().toString(36).substr(2, 9)
+    agentId: 'agent_' + Math.random().toString(36).substr(2, 9),
+    claudeApiKey: '',
+    travelpayoutsToken: ''
   });
   const [isSaved, setIsSaved] = useState(false);
 
@@ -17,10 +19,17 @@ export const BotSettings = () => {
     if (saved) {
       setSettings(JSON.parse(saved));
     }
+    const claudeKey = localStorage.getItem('claudeApiKey');
+    const tpToken = localStorage.getItem('travelpayoutsToken');
+    if (claudeKey || tpToken) {
+      setSettings(prev => ({ ...prev, claudeApiKey: claudeKey || '', travelpayoutsToken: tpToken || '' }));
+    }
   }, []);
 
   const handleSave = () => {
     localStorage.setItem('botSettings', JSON.stringify(settings));
+    localStorage.setItem('claudeApiKey', settings.claudeApiKey);
+    localStorage.setItem('travelpayoutsToken', settings.travelpayoutsToken);
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
   };
@@ -62,6 +71,37 @@ export const BotSettings = () => {
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors h-32 resize-none"
             placeholder="Инструкция для ИИ..."
           />
+        </div>
+
+        {/* API Keys */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+              <Bot size={16} className="text-blue-600" />
+              Claude API Key
+            </label>
+            <input 
+              type="password"
+              value={settings.claudeApiKey}
+              onChange={(e) => setSettings({...settings, claudeApiKey: e.target.value})}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors"
+              placeholder="sk-ant-..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+              <Bot size={16} className="text-blue-600" />
+              Travelpayouts Token
+            </label>
+            <input 
+              type="password"
+              value={settings.travelpayoutsToken}
+              onChange={(e) => setSettings({...settings, travelpayoutsToken: e.target.value})}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-900 outline-none focus:border-blue-500 transition-colors"
+              placeholder="Токен из кабинета Travelpayouts"
+            />
+          </div>
         </div>
 
         {/* Tone & Style */}

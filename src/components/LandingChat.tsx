@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, User, Sparkles, Zap, Globe, Plus, Minus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { generateTravelResponse } from '../services/gemini';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { HotelResults } from './HotelResults';
 
 const POPULAR_COUNTRIES = ['Турция', 'Египет', 'ОАЭ', 'Тайланд', 'Мальдивы'];
 const MEAL_OPTIONS = [
@@ -17,9 +18,16 @@ const STAR_OPTIONS = [
   { id: '5', label: '5*' }
 ];
 
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+  links?: {title: string, uri: string}[];
+  hotels?: any[];
+}
+
 export const LandingChat = () => {
-  const [messages, setMessages] = useState<{role: 'user' | 'assistant', content: string, links?: {title: string, uri: string}[]}[]>([
-    { role: 'assistant', content: 'Привет! 👋 Я твой **ИИ-помощник по турам**. \n\nРаботаю с базой **sletat.ru**. Куда хочешь махнуть? ✈️\n\n*(Демо: цены примерные, ссылок нет)*' }
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'assistant', content: 'Привет! 👋 Я твой **ИИ-помощник по турам**. \n\nКуда хочешь махнуть? ✈️' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -53,17 +61,16 @@ export const LandingChat = () => {
     setIsLoading(true);
 
     try {
+      const claudeApiKey = localStorage.getItem('claudeApiKey');
+      const travelpayoutsToken = localStorage.getItem('travelpayoutsToken');
+
+      if (!claudeApiKey) {
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Пожалуйста, настройте Claude API ключ в панели агентства (Демо кабинета агента -> Настройки бота).' }]);
+        setIsLoading(false);
+        return;
+      }
+
       const enhancedMessage = `
-        Ты - профессиональный ИИ-турагент (база sletat.ru). 
-        Оформляй ответы КРАСИВО и структурировано:
-        - Используй жирный шрифт для названий отелей и цен.
-        - Используй списки для перечисления преимуществ.
-        - Добавляй подходящие эмодзи.
-        - Пиши живым, человечным языком, но профессионально.
-        - В конце всегда напоминай про демо-режим, примерные цены и отсутствие ссылок.
-
-        ВАЖНО: Если турист в своем сообщении явно указывает новые параметры (например, "смени бюджет на 100к" или "хочу в Турцию"), ПРИОРИТЕТИЗИРУЙ это над текущими фильтрами из контекста. Подтверждай, что ты учел новые пожелания.
-
         [ТЕКУЩИЕ ПАРАМЕТРЫ ПОИСКА]
         - Тип: ${searchType === 'tours' ? 'Туры с перелетом' : searchType === 'hotels' ? 'Только отели' : 'Горящие туры'}
         - Из города: ${departureCity}
@@ -77,11 +84,35 @@ export const LandingChat = () => {
 
         Вопрос туриста: ${userMessage}
       `;
-      const reply = await generateTravelResponse(enhancedMessage);
+
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-c3625fc2/ai-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            message: enhancedMessage,
+            psychotype: 'emotional',
+            conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+            claudeApiKey,
+            travelpayoutsToken: travelpayoutsToken || '',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: reply
+        content: data.message,
+        hotels: data.hotels
       }]);
     } catch (error) {
       console.error('Error:', error);
@@ -111,13 +142,9 @@ export const LandingChat = () => {
         <div className="hidden sm:flex flex-col items-end">
            <div className="text-[10px] text-white/40 font-black uppercase tracking-tighter">Powered by</div>
            <div className="text-xs text-white/80 font-bold flex items-center gap-1">
-              Gemini 1.5 <Zap size={10} className="text-blue-400 fill-blue-400" />
+              Claude 3.5 <Zap size={10} className="text-blue-400 fill-blue-400" />
            </div>
         </div>
-      </div>
-
-      <div className="bg-amber-50 border-b border-amber-100 px-4 py-1.5 text-[10px] text-amber-700 text-center italic">
-        Демонстрация ИИ-чата. Данные о вылетах и ценах не являются актуальными.
       </div>
 
       {/* Messages Area */}
@@ -147,6 +174,11 @@ export const LandingChat = () => {
                   </ReactMarkdown>
                 </div>
               </div>
+              {msg.hotels && msg.hotels.length > 0 && (
+                <div className="mt-2 w-full max-w-sm">
+                  <HotelResults hotels={msg.hotels} />
+                </div>
+              )}
               {msg.links && msg.links.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {msg.links.map((link, lIdx) => (

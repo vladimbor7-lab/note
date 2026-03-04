@@ -2,18 +2,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { generateTravelResponse } from '../services/gemini';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { HotelResults } from '../components/HotelResults';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   links?: { title: string; uri: string }[];
+  hotels?: any[];
 }
 
 export const TouristChat = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Привет! 👋 Я твой **ИИ-помощник по турам**. \n\nРаботаю с базой **sletat.ru**. Куда хочешь махнуть? ✈️\n\n*(Демо: цены примерные, ссылок нет)*' }
+    { role: 'assistant', content: 'Привет! 👋 Я твой **ИИ-помощник по турам**. \n\nКуда хочешь махнуть? ✈️' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -88,29 +90,16 @@ export const TouristChat = () => {
     setIsLoading(true);
 
     try {
-      // Get settings
-      const savedSettings = localStorage.getItem('botSettings');
-      const settings = savedSettings ? JSON.parse(savedSettings) : {};
-      const systemPrompt = settings.systemPrompt || `
-        Ты - профессиональный ИИ-турагент (база sletat.ru). 
-        Оформляй ответы КРАСИВО и структурировано:
-        - Используй жирный шрифт для названий отелей и цен.
-        - Используй списки для перечисления преимуществ.
-        - Добавляй подходящие эмодзи.
-        - Пиши живым, человечным языком, но профессионально.
-        - В конце всегда напоминай про демо-режим, примерные цены и отсутствие ссылок.
+      const claudeApiKey = localStorage.getItem('claudeApiKey');
+      const travelpayoutsToken = localStorage.getItem('travelpayoutsToken');
 
-        ВАЖНО: Если турист в своем сообщении явно указывает новые параметры (например, "смени бюджет на 100к" или "хочу в Турцию"), ПРИОРИТЕТИЗИРУЙ это над текущими фильтрами из контекста. Подтверждай, что ты учел новые пожелания.
-      `;
-      const tone = settings.tone || 'friendly';
-      const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
+      if (!claudeApiKey) {
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Пожалуйста, настройте Claude API ключ в панели агентства (Демо кабинета агента -> Настройки бота).' }]);
+        setIsLoading(false);
+        return;
+      }
 
       const prompt = `
-        ${systemPrompt}
-        
-        Настройки тона: ${tone}
-        Использовать эмодзи: ${useEmoji ? 'Да' : 'Нет'}
-
         ТЕКУЩИЕ ФИЛЬТРЫ ТУРИСТА (учитывай их при подборе):
         - Тип поиска: ${filters.searchType === 'tours' ? 'Туры с перелетом' : 'Только отели'}
         - Горящие туры: ${filters.isHot ? 'ДА' : 'Нет'}
@@ -144,18 +133,37 @@ export const TouristChat = () => {
           filters.animation ? 'Анимация' : ''
         ].filter(Boolean).join(', ') || 'Нет'}
 
-        История диалога:
-        ${messages.map(m => `${m.role === 'user' ? 'Турист' : 'Ассистент'}: ${m.content}`).join('\n')}
-        Турист: ${userMessage}
-        
-        Отвечай кратко, по делу. Опирайся на базу sletat.ru.
+        Вопрос туриста: ${userMessage}
       `;
 
-      const reply = await generateTravelResponse(prompt);
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-c3625fc2/ai-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            message: prompt,
+            psychotype: 'emotional',
+            conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+            claudeApiKey,
+            travelpayoutsToken: travelpayoutsToken || '',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
       
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: reply
+        content: data.message,
+        hotels: data.hotels
       }]);
     } catch (error) {
       console.error('Error:', error);
@@ -636,6 +644,12 @@ export const TouristChat = () => {
                 </div>
               </div>
               
+              {msg.hotels && msg.hotels.length > 0 && (
+                <div className="mt-2 w-full max-w-md">
+                  <HotelResults hotels={msg.hotels} />
+                </div>
+              )}
+
               {msg.links && msg.links.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-1">
                   {msg.links.map((link, lIdx) => (

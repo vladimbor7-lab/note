@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { MessageCircle, Phone, Star, MapPin, ShieldCheck, AlertTriangle, Send, Plus, Minus, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { generateTravelResponse } from '../services/gemini';
+import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { HotelResults } from '../components/HotelResults';
 
 const POPULAR_COUNTRIES = ['Турция', 'Египет', 'ОАЭ', 'Тайланд', 'Мальдивы'];
 const MEAL_OPTIONS = [
@@ -17,6 +18,12 @@ const STAR_OPTIONS = [
   { id: '4', label: '4*' },
   { id: '5', label: '5*' }
 ];
+
+interface Message {
+  role: 'ai' | 'user';
+  content: string;
+  hotels?: any[];
+}
 
 export const SmartSelection = () => {
   const location = useLocation();
@@ -38,19 +45,19 @@ export const SmartSelection = () => {
 
   const getInitialMessage = (psy: string) => {
     switch(psy) {
-      case 'rational': return 'Привет! 👋 Я **Мария**, твой ИИ-аналитик. \n\nПроверила подборку по **sletat.ru**: \n* **Rixos** — лучший по соотношению цена/качество\n* **Alva Donna** — выгоднее на 25%\n\nКакие параметры сравним? 📊';
-      case 'luxury': return 'Добрый день. Я ваш **персональный консьерж**. \n\nПодготовила эксклюзивные варианты: \n* **Rixos Premium** — безупречный сервис и статус\n* **Nirvana** — приватность и роскошь\n\nЖелаете обсудить детали трансфера? 🥂';
-      case 'family': return 'Здравствуйте! 👋 Я **Мария**, помогу вашей семье. \n\nПосмотрела отели для деток: \n* **Alva Donna** — лучший мини-клуб и питание\n* **Rixos** — аквапарк мечты\n\nРассказать про детское меню? 👨‍👩‍👧‍👦';
-      case 'skeptic': return 'Приветствую. Я **Мария**. \n\nОтобрала варианты с самым высоким рейтингом реальных отзывов: \n* **Rixos** — 9.8/10 по чистоте\n* **Alva Donna** — подтвержденное качество питания\n\nПрислать протоколы безопасности? 🧐';
-      case 'adventurer': return 'Хей! 👋 Я **Мария**, твой проводник. \n\nНашла места с драйвом: \n* **Nirvana** — рядом лучшие тропы для хайкинга\n* **Rixos** — доступ ко всем активностям Land of Legends\n\nГотов к приключениям? 🧗‍♂️';
-      case 'romantic': return 'Привет... Я **Мария**. ✨ \n\nНашла самые красивые закаты для вас: \n* **Rixos** — ужины у самой кромки воды\n* **Nirvana** — полная приватность в лесу\n\nХотите забронировать столик с видом? 🌅';
-      case 'business': return 'Добрый день. Я **Мария**, ваш бизнес-ассистент. \n\nВарианты с идеальной логистикой и связью: \n* **Rixos** — лучший конференц-сервис и Wi-Fi 6\n* **Alva Donna** — 15 минут от аэропорта\n\nНужно подготовить документы для отчетности? 💼';
-      default: return 'Привет! 👋 Я **Мария**, твой агент. \n\nГлянула подборку (база **sletat.ru**): \n* **Rixos** — это про релакс\n* **Alva Donna** — для детей\n\nЧто тебе ближе? 😊';
+      case 'rational': return 'Привет! 👋 Я **Мария**, твой ИИ-аналитик. \n\nКакие параметры сравним? 📊';
+      case 'luxury': return 'Добрый день. Я ваш **персональный консьерж**. \n\nЖелаете обсудить детали трансфера? 🥂';
+      case 'family': return 'Здравствуйте! 👋 Я **Мария**, помогу вашей семье. \n\nРассказать про детское меню? 👨‍👩‍👧‍👦';
+      case 'skeptic': return 'Приветствую. Я **Мария**. \n\nПрислать протоколы безопасности? 🧐';
+      case 'adventurer': return 'Хей! 👋 Я **Мария**, твой проводник. \n\nГотов к приключениям? 🧗‍♂️';
+      case 'romantic': return 'Привет... Я **Мария**. ✨ \n\nХотите забронировать столик с видом? 🌅';
+      case 'business': return 'Добрый день. Я **Мария**, ваш бизнес-ассистент. \n\nНужно подготовить документы для отчетности? 💼';
+      default: return 'Привет! 👋 Я **Мария**, твой агент. \n\nЧто тебе ближе? 😊';
     }
   };
 
-  const [messages, setMessages] = useState([
-    { role: 'ai', content: getInitialMessage(psyParam) + '\n\n*(Демо: цены примерные, ссылок нет)*' }
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'ai', content: getInitialMessage(psyParam) }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -68,23 +75,36 @@ export const SmartSelection = () => {
     searchType: typeParam as 'tours' | 'hotels' | 'hot',
     flightClass: 'economy'
   });
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSend = async (overrideMessage?: string) => {
     const messageToSend = overrideMessage || input;
     if (!messageToSend.trim()) return;
     
-    const userMsg = { role: 'user', content: messageToSend };
+    const userMsg: Message = { role: 'user', content: messageToSend };
     setMessages(prev => [...prev, userMsg]);
     if (!overrideMessage) setInput('');
     setIsTyping(true);
 
     try {
-      const savedSettings = localStorage.getItem('botSettings');
-      const settings = savedSettings ? JSON.parse(savedSettings) : {};
-      const tone = settings.tone || 'friendly';
-      const useEmoji = settings.useEmoji !== undefined ? settings.useEmoji : true;
+      const claudeApiKey = localStorage.getItem('claudeApiKey');
+      const travelpayoutsToken = localStorage.getItem('travelpayoutsToken');
 
-      const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). 
+      if (!claudeApiKey) {
+        setMessages(prev => [...prev, { role: 'ai', content: 'Пожалуйста, настройте Claude API ключ в панели агентства (Демо кабинета агента -> Настройки бота).' }]);
+        setIsTyping(false);
+        return;
+      }
+
+      const prompt = `
       Контекст подборки: 
       - Направление: ${filters.destination}
       - Аудитория: ${audParam}
@@ -98,32 +118,41 @@ export const SmartSelection = () => {
       - Пожелания от агента (скрыто от туриста, но учти это): ${wishParam}
       
       Вопрос туриста: ${messageToSend}. 
-      Тон: ${toneParam}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}.
-      
-      ИНСТРУКЦИЯ ПО ПСИХОТИПУ:
-      - Если rational: делай упор на цифры, выгоду, инфраструктуру, сравнение фактов.
-      - Если emotional: делай упор на атмосферу, чувства, "представьте как вы...", вайб.
-      - Если luxury: делай упор на эксклюзивность, сервис, бренды, статус, комфорт.
-      - Если family: делай упор на безопасность, детское питание, анимацию, удобство для родителей.
-      - Если skeptic: делай упор на факты, рейтинги, отсутствие скрытых доплат, гарантии возврата, реальные отзывы.
-      - Если adventurer: делай упор на необычные локации, активный отдых, экскурсии, "не как у всех", драйв.
-      - Если romantic: делай упор на эстетику, закаты, уединение, красивые номера, сервис для пар, атмосферу.
-      - Если business: делай упор на локацию, Wi-Fi, скорость оформления, комфорт, статус, тишину, отчетные документы.
+      Тон: ${toneParam}. Психотип: ${psyParam}.
+      `;
 
-      Оформляй ответы КРАСИВО и структурировано:
-      - Используй жирный шрифт для названий отелей и цен.
-      - Используй списки для перечисления преимуществ.
-      - Добавляй подходящие эмодзи.
-      - Пиши живым, человечным языком, но профессионально.
-      - В конце напомни про демо-режим, примерные цены и отсутствие ссылок.
-      
-      ВАЖНО: Если турист в своем сообщении явно указывает новые параметры (например, "смени бюджет на 100к" или "хочу в Турцию"), ПРИОРИТЕТИЗИРУЙ это над текущими фильтрами из контекста. Подтверждай, что ты учел новые пожелания.`;
+      const response = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/make-server-c3625fc2/ai-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
+            message: prompt,
+            psychotype: psyParam,
+            conversationHistory: messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content })),
+            claudeApiKey,
+            travelpayoutsToken: travelpayoutsToken || '',
+          }),
+        }
+      );
 
-      const reply = await generateTravelResponse(prompt);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const data = await response.json();
       
-      setMessages(prev => [...prev, { role: 'ai', content: reply || 'Извините, я задумался. Спросите еще раз.' }]);
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        content: data.message,
+        hotels: data.hotels
+      }]);
     } catch (e) {
       console.error(e);
+      setMessages(prev => [...prev, { role: 'ai', content: 'Извините, произошла ошибка. Попробуйте еще раз.' }]);
     } finally {
       setIsTyping(false);
     }
@@ -449,6 +478,11 @@ export const SmartSelection = () => {
                         {msg.content}
                       </ReactMarkdown>
                     </div>
+                    {msg.hotels && msg.hotels.length > 0 && (
+                      <div className="mt-2 w-full">
+                        <HotelResults hotels={msg.hotels} />
+                      </div>
+                    )}
                     {msg.role === 'ai' && (
                       <div className="mt-2 pt-2 border-t border-slate-200/50 text-[10px] opacity-50 flex items-center gap-1">
                         <ShieldCheck size={10} />
