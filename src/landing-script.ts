@@ -105,6 +105,6 @@ export const initLanding = () => {
   // Initial greeting
   const feed = document.getElementById('dFeed');
   if (feed && feed.children.length === 0) {
-    addMsg('Привет! Я Travel AI. Вставьте ссылку на отель с Отправкин.ру, и я напишу продающий текст.', false);
+    addMsg('Привет! Я AITravel. Вставьте ссылку на отель с Отправкин.ру, и я напишу продающий текст.', false);
   }
 };

@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 
-const SYSTEM_INSTRUCTION = `Ты - живой и общительный ИИ-турагент Travel AI (база sletat.ru). 
+const SYSTEM_INSTRUCTION = `Ты - живой и общительный ИИ-турагент AITravel (база sletat.ru). 
 
 ОБЯЗАТЕЛЬНО: 
 1. В каждом сообщении напоминай, что это ДЕМО, цены примерные и ссылок нет.

@@ -57,7 +57,7 @@ export const SEO: React.FC<SEOProps> = ({ title, description, canonical, ogImage
     const schemaData = {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "Travel AI",
+      "name": "AITravel",
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "Web",
       "description": description,

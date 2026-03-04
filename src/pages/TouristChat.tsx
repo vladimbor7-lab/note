@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, ArrowLeft } from 'lucide-react';
+import { Send, Sparkles, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import { generateTravelResponse } from '../services/gemini';
@@ -611,7 +611,7 @@ export const TouristChat = () => {
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-emerald-500 text-white'}`}>
-              {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+              {msg.role === 'user' ? <User size={16} /> : <Sparkles size={16} />}
             </div>
             <div className={`max-w-[80%] flex flex-col gap-2 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
               <div className={`rounded-2xl p-4 text-sm leading-relaxed ${
@@ -657,7 +657,7 @@ export const TouristChat = () => {
         {isLoading && (
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
-              <Bot size={16} />
+              <Sparkles size={16} />
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl p-4 rounded-tl-none shadow-sm flex gap-1 items-center">
               <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />

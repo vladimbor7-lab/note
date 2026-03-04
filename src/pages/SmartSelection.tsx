@@ -1,8 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { MessageCircle, Phone, Star, MapPin, ShieldCheck, AlertTriangle, Send } from 'lucide-react';
+import { MessageCircle, Phone, Star, MapPin, ShieldCheck, AlertTriangle, Send, Plus, Minus, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { generateTravelResponse } from '../services/gemini';
+
+const POPULAR_COUNTRIES = ['Турция', 'Египет', 'ОАЭ', 'Тайланд', 'Мальдивы'];
+const MEAL_OPTIONS = [
+  { id: 'any', label: 'Любое' },
+  { id: 'AI', label: 'Все вкл.' },
+  { id: 'HB', label: 'Завтрак+Ужин' },
+  { id: 'BB', label: 'Завтраки' }
+];
+const STAR_OPTIONS = [
+  { id: 'any', label: 'Любые' },
+  { id: '3', label: '3*' },
+  { id: '4', label: '4*' },
+  { id: '5', label: '5*' }
+];
 
 export const SmartSelection = () => {
   const location = useLocation();
@@ -19,6 +33,8 @@ export const SmartSelection = () => {
   const adultsParam = queryParams.get('adults') || '2';
   const kidsParam = queryParams.get('kids') || '0';
   const wishParam = queryParams.get('wish') || '';
+  const departureParam = queryParams.get('departure') || 'Москва';
+  const typeParam = queryParams.get('type') || 'tours';
 
   const getInitialMessage = (psy: string) => {
     switch(psy) {
@@ -39,17 +55,27 @@ export const SmartSelection = () => {
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [filters, setFilters] = useState({
-    budget: 300000,
-    nights: 7,
-    meals: 'AI'
+    budget: parseInt(budgetParam),
+    nights: { min: 6, max: 14 },
+    meals: mealsParam,
+    stars: starsParam,
+    adults: parseInt(adultsParam),
+    kids: parseInt(kidsParam),
+    destination: destParam,
+    hotelRating: 4.0,
+    departureCity: departureParam,
+    isHot: typeParam === 'hot',
+    searchType: typeParam as 'tours' | 'hotels' | 'hot',
+    flightClass: 'economy'
   });
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const handleSend = async (overrideMessage?: string) => {
+    const messageToSend = overrideMessage || input;
+    if (!messageToSend.trim()) return;
     
-    const userMsg = { role: 'user', content: input };
+    const userMsg = { role: 'user', content: messageToSend };
     setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    if (!overrideMessage) setInput('');
     setIsTyping(true);
 
     try {
@@ -60,16 +86,18 @@ export const SmartSelection = () => {
 
       const prompt = `Ты - свой человек, ИИ-помощник в подборке туров (база sletat.ru). 
       Контекст подборки: 
-      - Направление: ${destParam}
+      - Направление: ${filters.destination}
       - Аудитория: ${audParam}
-      - Бюджет: ${budgetParam}₽
-      - Ночей: ${nightsParam}
-      - Состав: ${adultsParam} взр, ${kidsParam} детей
-      - Звездность: ${starsParam}*
-      - Питание: ${mealsParam}
+      - Бюджет: ${filters.budget}₽
+      - Ночей: ${filters.nights.min}-${filters.nights.max}
+      - Состав: ${filters.adults} взр, ${filters.kids} детей
+      - Звездность: ${filters.stars}*
+      - Питание: ${filters.meals}
+      - Город вылета: ${filters.departureCity}
+      - Тип поиска: ${filters.searchType}
       - Пожелания от агента (скрыто от туриста, но учти это): ${wishParam}
       
-      Вопрос туриста: ${input}. 
+      Вопрос туриста: ${messageToSend}. 
       Тон: ${toneParam}. Эмодзи: ${useEmoji ? 'Да' : 'Нет'}. Психотип: ${psyParam}.
       
       ИНСТРУКЦИЯ ПО ПСИХОТИПУ:
@@ -238,40 +266,165 @@ export const SmartSelection = () => {
         {/* RIGHT: AI CONCIERGE */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 sticky top-24 h-[600px] flex flex-col">
-            <div className="p-4 border-b border-slate-100 bg-slate-50 rounded-t-2xl space-y-3">
+            <div className="p-4 border-b border-slate-100 bg-blue-600 rounded-t-2xl space-y-4 shadow-inner">
               <div className="flex items-center justify-between">
-                <div className="font-bold text-slate-900 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  Персональный ИИ-гид
+                <div className="font-bold text-white flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                  AITravel Консьерж
                 </div>
-                <div className="text-[10px] text-slate-400">Sletat.ru</div>
+                <div className="text-[10px] text-white/60">Sletat.ru</div>
               </div>
               
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase">
-                    <span>Бюджет</span>
-                    <span>{filters.budget/1000}к</span>
-                  </div>
-                  <input 
-                    type="range" min="50000" max="1000000" step="10000"
-                    value={filters.budget}
-                    onChange={(e) => setFilters({...filters, budget: parseInt(e.target.value)})}
-                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
+              <div className="space-y-3">
+                {/* Search Type Tabs */}
+                <div className="flex gap-2 text-[10px] text-white/80 font-bold px-1">
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="st_side" checked={filters.searchType === 'tours'} onChange={() => setFilters({...filters, searchType: 'tours'})} className="w-2.5 h-2.5 accent-white" />
+                    <span>Туры</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="st_side" checked={filters.searchType === 'hotels'} onChange={() => setFilters({...filters, searchType: 'hotels'})} className="w-2.5 h-2.5 accent-white" />
+                    <span>Отели</span>
+                  </label>
+                  <label className="flex items-center gap-1 cursor-pointer">
+                    <input type="radio" name="st_side" checked={filters.searchType === 'hot'} onChange={() => setFilters({...filters, searchType: 'hot'})} className="w-2.5 h-2.5 accent-white" />
+                    <span>Горящие</span>
+                  </label>
                 </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[9px] font-bold text-slate-500 uppercase">
-                    <span>Ночей</span>
-                    <span>{filters.nights}</span>
+
+                {/* Destination & Departure */}
+                <div className="space-y-2">
+                  <div className="bg-white rounded-xl p-2 flex items-center gap-2 shadow-sm">
+                    <MapPin size={14} className="text-slate-400" />
+                    <input 
+                      type="text"
+                      placeholder="Страна, город..."
+                      value={filters.destination}
+                      onChange={(e) => setFilters({...filters, destination: e.target.value})}
+                      className="w-full text-xs outline-none text-slate-800"
+                    />
                   </div>
-                  <input 
-                    type="range" min="1" max="21"
-                    value={filters.nights}
-                    onChange={(e) => setFilters({...filters, nights: parseInt(e.target.value)})}
-                    className="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                  />
+                  <div className="flex flex-wrap gap-1 px-1">
+                    {POPULAR_COUNTRIES.map(country => (
+                      <button
+                        key={country}
+                        onClick={() => setFilters({...filters, destination: country})}
+                        className={`text-[8px] px-1.5 py-0.5 rounded-lg font-black transition-all ${
+                          filters.destination === country 
+                            ? 'bg-white text-blue-600 shadow-md' 
+                            : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                        }`}
+                      >
+                        {country}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-1.5 border border-white/20">
+                    <span className="text-[10px] text-white/60 font-bold">из</span>
+                    <select 
+                      value={filters.departureCity}
+                      onChange={(e) => setFilters({...filters, departureCity: e.target.value})}
+                      className="bg-transparent border-none text-white font-bold text-xs outline-none cursor-pointer w-full"
+                    >
+                      <option value="Москва" className="text-slate-900">Москва</option>
+                      <option value="СПб" className="text-slate-900">СПб</option>
+                      <option value="Казань" className="text-slate-900">Казань</option>
+                      <option value="Екатеринбург" className="text-slate-900">Екатеринбург</option>
+                    </select>
+                  </div>
                 </div>
+
+                {/* Budget & Nights */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-white rounded-xl p-2 flex flex-col justify-center shadow-sm">
+                    <span className="text-[8px] text-slate-400 uppercase font-black">Бюджет (к)</span>
+                    <div className="flex items-center gap-1">
+                      <input 
+                        type="range" min="50000" max="1000000" step="10000"
+                        value={filters.budget}
+                        onChange={(e) => setFilters({...filters, budget: parseInt(e.target.value)})}
+                        className="w-full h-1 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                      />
+                      <span className="text-[10px] font-bold text-slate-700">{filters.budget/1000}</span>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-2 flex flex-col justify-center shadow-sm">
+                    <span className="text-[8px] text-slate-400 uppercase font-black">Ночей</span>
+                    <div className="flex items-center gap-1">
+                      <input 
+                        type="number" value={filters.nights.min} 
+                        onChange={(e) => setFilters({...filters, nights: {...filters.nights, min: parseInt(e.target.value)}})}
+                        className="w-full text-[10px] font-bold outline-none"
+                      />
+                      <span className="text-slate-300">-</span>
+                      <input 
+                        type="number" value={filters.nights.max} 
+                        onChange={(e) => setFilters({...filters, nights: {...filters.nights, max: parseInt(e.target.value)}})}
+                        className="w-full text-[10px] font-bold outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stars & Meals */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1">
+                    {STAR_OPTIONS.map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setFilters({...filters, stars: opt.id})}
+                        className={`flex-1 text-[9px] py-1.5 rounded-lg font-black transition-all border ${
+                          filters.stars === opt.id 
+                            ? 'bg-white border-white text-blue-600 shadow-md' 
+                            : 'bg-white/10 border-white/10 text-white/60 hover:bg-white/20'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {MEAL_OPTIONS.map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setFilters({...filters, meals: opt.id})}
+                        className={`flex-1 text-[9px] py-1.5 rounded-lg font-black transition-all border ${
+                          filters.meals === opt.id 
+                            ? 'bg-white border-white text-blue-600 shadow-md' 
+                            : 'bg-white/10 border-white/10 text-white/60 hover:bg-white/20'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Adults & Kids */}
+                <div className="bg-white rounded-xl p-2 flex flex-col justify-center shadow-sm">
+                  <span className="text-[8px] text-slate-400 uppercase font-black mb-1">Туристы</span>
+                  <div className="flex items-center justify-between gap-1 text-[10px] font-black text-slate-900">
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setFilters({...filters, adults: Math.max(1, filters.adults - 1)})} className="w-4 h-4 bg-slate-100 rounded flex items-center justify-center hover:bg-slate-200"><Minus size={10} /></button>
+                      <span className="w-2 text-center">{filters.adults}</span>
+                      <button onClick={() => setFilters({...filters, adults: filters.adults + 1})} className="w-4 h-4 bg-slate-100 rounded flex items-center justify-center hover:bg-slate-200"><Plus size={10} /></button>
+                      <span className="text-[8px] text-slate-400">взр</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setFilters({...filters, kids: Math.max(0, filters.kids - 1)})} className="w-4 h-4 bg-slate-100 rounded flex items-center justify-center hover:bg-slate-200"><Minus size={10} /></button>
+                      <span className="w-2 text-center">{filters.kids}</span>
+                      <button onClick={() => setFilters({...filters, kids: filters.kids + 1})} className="w-4 h-4 bg-slate-100 rounded flex items-center justify-center hover:bg-slate-200"><Plus size={10} /></button>
+                      <span className="text-[8px] text-slate-400">дет</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => handleSend(`Обнови подборку: ${filters.searchType === 'tours' ? 'туры с перелетом' : filters.searchType === 'hotels' ? 'отели' : 'горящие'}, из ${filters.departureCity} в ${filters.destination || 'любое место'}, на ${filters.nights.min}-${filters.nights.max} ночей, ${filters.adults} взр + ${filters.kids} дет, бюджет ${filters.budget} руб.`)}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-xl font-black text-xs transition-all shadow-lg shadow-orange-500/20 active:scale-95"
+                >
+                  Обновить подборку
+                </button>
               </div>
             </div>
             
@@ -327,7 +480,7 @@ export const SmartSelection = () => {
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-3 text-sm outline-none focus:border-blue-500 transition-colors"
                 />
                 <button 
-                  onClick={handleSend}
+                  onClick={() => handleSend()}
                   disabled={!input.trim() || isTyping}
                   className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-700 disabled:opacity-50 p-1"
                 >

@@ -7,6 +7,20 @@ import '../landing.css';
 
 export const Landing = () => {
   const navigate = useNavigate();
+  const [heroSearch, setHeroSearch] = React.useState({
+    departure: 'Москва',
+    destination: '',
+    type: 'tours'
+  });
+
+  const handleHeroSearch = () => {
+    const params = new URLSearchParams({
+      dest: heroSearch.destination,
+      departure: heroSearch.departure,
+      type: heroSearch.type
+    });
+    navigate(`/selection?${params.toString()}`);
+  };
 
   return (
     <div className="font-sans text-slate-900 bg-white">
@@ -14,12 +28,12 @@ export const Landing = () => {
       <Header />
 
       {/* HERO */}
-      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden bg-gradient-to-b from-blue-50/50 to-white">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold mb-6">
               <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
-              AIAIAI Travel
+              AITravel
             </div>
             <h1 className="text-5xl lg:text-6xl font-black leading-[1.1] mb-6 tracking-tight">
               Ваш ИИ-ассистент, <br/>
@@ -28,13 +42,82 @@ export const Landing = () => {
             <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
               Пока вы отдыхаете. Автоматическая упаковка подборок из Отправкин.ру в WhatsApp. ИИ-консультация для ваших туристов 24/7.
             </p>
+
+            {/* Professional Search Bar */}
+            <div className="bg-white p-2 rounded-3xl shadow-2xl border border-slate-100 mb-12 max-w-2xl">
+              <div className="bg-blue-600 p-4 rounded-2xl space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-white/90 font-bold px-1">
+                  <div className="flex items-center gap-2">
+                    <span>из</span>
+                    <select 
+                      value={heroSearch.departure}
+                      onChange={(e) => setHeroSearch({...heroSearch, departure: e.target.value})}
+                      className="bg-transparent border-none text-white font-black outline-none cursor-pointer"
+                    >
+                      <option value="Москва" className="text-slate-900">Москва</option>
+                      <option value="Екатеринбург" className="text-slate-900">Екатеринбург</option>
+                      <option value="СПб" className="text-slate-900">СПб</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="radio" name="st_hero" 
+                        checked={heroSearch.type === 'tours'} 
+                        onChange={() => setHeroSearch({...heroSearch, type: 'tours'})}
+                        className="w-3 h-3 accent-white" 
+                      />
+                      <span>Туры с перелетом</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="radio" name="st_hero" 
+                        checked={heroSearch.type === 'hotels'} 
+                        onChange={() => setHeroSearch({...heroSearch, type: 'hotels'})}
+                        className="w-3 h-3 accent-white" 
+                      />
+                      <span>Отели</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input 
+                        type="radio" name="st_hero" 
+                        checked={heroSearch.type === 'hot'} 
+                        onChange={() => setHeroSearch({...heroSearch, type: 'hot'})}
+                        className="w-3 h-3 accent-white" 
+                      />
+                      <span>Горящие</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                  <div className="md:col-span-2 bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm">
+                    <Globe size={18} className="text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder="Страна, город или отель" 
+                      value={heroSearch.destination}
+                      onChange={(e) => setHeroSearch({...heroSearch, destination: e.target.value})}
+                      className="w-full text-sm outline-none text-slate-800" 
+                    />
+                  </div>
+                  <div className="bg-white rounded-xl p-3 flex flex-col justify-center shadow-sm">
+                    <span className="text-[9px] text-slate-400 uppercase font-black">Даты / Ночей</span>
+                    <div className="text-xs font-bold text-slate-900">5 мар - 14 мар (6-14н)</div>
+                  </div>
+                  <button onClick={handleHeroSearch} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black text-sm transition-all shadow-lg shadow-orange-500/20 active:scale-95">
+                    Найти туры
+                  </button>
+                </div>
+              </div>
+            </div>
             
             <div className="flex flex-wrap gap-4 mb-12">
-              <button onClick={() => navigate('/dashboard')} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1">
-                Попробовать бесплатно
+              <button onClick={() => navigate('/selection')} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-blue-600/20 hover:-translate-y-1">
+                Менеджер для туристов
               </button>
-              <button onClick={() => navigate('/chat')} className="bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:border-slate-300">
-                Менеджер для туристов (Бот)
+              <button onClick={() => navigate('/dashboard')} className="bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 px-8 py-4 rounded-2xl font-bold text-lg transition-all hover:border-slate-300">
+                Демо кабинета агента
               </button>
             </div>
 
@@ -57,21 +140,21 @@ export const Landing = () => {
           {/* RIGHT SIDE - INTERACTIVE CHAT */}
           <div className="relative flex justify-center lg:justify-end">
              {/* Background blobs */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-violet-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
              
              {/* The Chat Widget Container */}
-             <div className="relative z-10 w-full max-w-md">
+             <div className="relative z-10 w-full max-w-lg lg:max-w-xl">
                 <LandingChat />
                 
                 {/* Floating Badge */}
-                <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-3 animate-bounce" style={{ animationDuration: '3s' }}>
-                   <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/30">
-                      <MessageCircle size={20} />
+                <div className="absolute -bottom-6 -right-6 bg-white p-5 rounded-2xl shadow-2xl border border-slate-100 flex items-center gap-4 animate-bounce hidden md:flex" style={{ animationDuration: '3s' }}>
+                   <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+                      <MessageCircle size={24} />
                    </div>
                    <div>
-                      <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Статус</div>
-                      <div className="text-sm font-bold text-slate-900">Бот активен 24/7</div>
+                      <div className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Статус</div>
+                      <div className="text-base font-black text-slate-900">ИИ-Менеджер онлайн</div>
                    </div>
                 </div>
              </div>
@@ -98,7 +181,7 @@ export const Landing = () => {
             
             <div className="bg-white p-8 rounded-3xl shadow-xl border-2 border-blue-600 relative transform md:-translate-y-4">
               <div className="absolute -top-3 right-8 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-bold">Рекомендуем</div>
-              <div className="font-bold text-slate-900 mb-4">Travel AI (Claude 3.5)</div>
+              <div className="font-bold text-slate-900 mb-4">AITravel (Claude 3.5)</div>
               <div className="text-sm leading-relaxed text-slate-900 mb-6">
                 "✨ <b>Rixos Premium Belek — это не просто отель, это стиль жизни.</b><br/><br/>
                 Представьте: вы просыпаетесь на вилле, а через 5 минут уже пьете кофе с видом на сосновый лес. Для детей — легендарный Land of Legends (бесплатно!), для вас — тишина в Anjana Spa.<br/><br/>
@@ -122,7 +205,7 @@ export const Landing = () => {
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
               <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-2xl mb-6">🧠</div>
               <h3 className="text-xl font-bold mb-3">Психотипы ИИ</h3>
-              <p className="text-slate-600 leading-relaxed">Бот подстраивается под клиента: рациональный, эмоциональный, люкс или семейный подход.</p>
+              <p className="text-slate-600 leading-relaxed">Менеджер подстраивается под клиента: рациональный, эмоциональный, люкс или семейный подход.</p>
             </div>
             <div className="bg-white p-8 rounded-3xl border border-slate-100 hover:shadow-xl transition-shadow">
               <div className="w-12 h-12 bg-violet-50 rounded-2xl flex items-center justify-center text-2xl mb-6">📝</div>
@@ -195,11 +278,11 @@ export const Landing = () => {
       <footer className="bg-white border-t border-slate-200 py-12">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-lg">T</div>
-            <div className="font-bold text-xl tracking-tight">Travel<em className="text-blue-600 not-italic">AI</em></div>
+            <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-black text-lg">A</div>
+            <div className="font-bold text-xl tracking-tight">AI<em className="text-blue-600 not-italic">Travel</em></div>
           </a>
           <div className="text-slate-500 text-sm">
-            © 2026 Travel AI · Интеграция с Отправкин.ру
+            © 2026 AITravel · Интеграция с Sletat.ru
           </div>
         </div>
       </footer>
