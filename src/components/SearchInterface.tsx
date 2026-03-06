@@ -248,7 +248,7 @@ export function SearchInterface({ psychotype = '', filters = { maxPrice: null, s
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden w-full flex flex-col h-[600px]">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden w-full flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
         <div className="flex items-center gap-2">
@@ -258,7 +258,7 @@ export function SearchInterface({ psychotype = '', filters = { maxPrice: null, s
           <div>
             <h3 className="text-base font-semibold text-gray-900">AI-ассистент</h3>
             <div className="text-xs text-gray-500 flex items-center gap-1">
-              Powered by Claude <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+              Онлайн <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
             </div>
           </div>
         </div>
